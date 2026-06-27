@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yahoo News → English Reader</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --accent: #6c8eff;
+    --accent2: #a78bfa;
+    --text: #e8eaf0;
+    --text-muted: #7b82a0;
+    --border: #2a2f45;
+    --success: #34d399;
+    --warning: #fbbf24;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--accent); }
+  .tag {
+    font-size: 11px;
+    background: var(--surface2);
+    color: var(--accent2);
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    font-weight: 500;
+  }
+  .header-right {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  #backBtn {
+    display: none;
+    background: var(--surface2);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  #backBtn:hover { color: var(--text); border-color: var(--accent); }
+
+  /* LAYOUT */
+  .container { max-width: 860px; margin: 0 auto; padding: 28px 20px; }
+
+  /* CATEGORY TABS */
+  .categories {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  .cat-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 7px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+  }
+  .cat-btn:hover, .cat-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  /* NEWS LIST */
+  #newsList { display: flex; flex-direction: column; gap: 12px; }
+
+  .news-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .news-card:hover {
+    border-color: var(--accent);
+    background: var(--surface2);
+    transform: translateY(-1px);
+  }
+  .news-num {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 600;
+    min-width: 24px;
+    padding-top: 2px;
+  }
+  .news-content { flex: 1; }
+  .news-title-jp {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    line-height: 1.5;
+  }
+  .news-title-en {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--text);
+  }
+  .news-meta {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 12px;
+  }
+  .arrow-icon {
+    color: var(--text-muted);
+    font-size: 18px;
+    padding-top: 2px;
+    transition: transform 0.2s;
+  }
+  .news-card:hover .arrow-icon { transform: translateX(4px); color: var(--accent); }
+
+  /* LOADING */
+  .loading {
+    text-align: center;
+    padding: 48px;
+    color: var(--text-muted);
+  }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ARTICLE VIEW */
+  #articleView { display: none; }
+
+  .article-header {
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .article-title {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 10px;
+    letter-spacing: -0.3px;
+  }
+  .article-title-jp {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .article-date { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+
+  /* TRANSLATION TOGGLE */
+  .translation-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 24px;
+  }
+  .translation-bar label {
+    font-size: 13px;
+    color: var(--text-muted);
+    flex: 1;
+  }
+  .toggle {
+    position: relative;
+    width: 40px; height: 22px;
+    cursor: pointer;
+  }
+  .toggle input { display: none; }
+  .toggle-track {
+    width: 40px; height: 22px;
+    background: var(--border);
+    border-radius: 11px;
+    transition: background 0.2s;
+    display: block;
+  }
+  .toggle input:checked + .toggle-track { background: var(--accent); }
+  .toggle-thumb {
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 16px; height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    transition: left 0.2s;
+    pointer-events: none;
+  }
+  .toggle input:checked ~ .toggle-thumb { left: 21px; }
+
+  /* ARTICLE BODY */
+  #articleBody { line-height: 1.9; }
+
+  .para-block { margin-bottom: 24px; }
+
+  .en-para {
+    font-size: 16px;
+    line-height: 1.9;
+    color: var(--text);
+  }
+
+  .jp-para {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.8;
+    margin-top: 8px;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-left: 3px solid var(--accent2);
+    border-radius: 0 8px 8px 0;
+    display: none;
+  }
+  .jp-para.visible { display: block; }
+
+  /* WORD */
+  .word {
+    cursor: pointer;
+    border-bottom: 1px dashed transparent;
+    transition: all 0.15s;
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+  .word:hover {
+    background: rgba(108, 142, 255, 0.15);
+    border-bottom-color: var(--accent);
+    color: #fff;
+  }
+  .word.looked-up {
+    border-bottom-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  /* TOOLTIP */
+  #tooltip {
+    position: fixed;
+    background: #1e2235;
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    max-width: 220px;
+    z-index: 9999;
+    display: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    pointer-events: none;
+  }
+  #tooltip .word-en { font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  #tooltip .word-jp { color: var(--accent2); font-family: 'Noto Sans JP', sans-serif; font-size: 14px; }
+  #tooltip .word-loading { color: var(--text-muted); font-size: 12px; }
+
+  /* ERROR / NOTICE */
+  .notice {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+  .notice strong { color: var(--warning); }
+
+  /* STATUS BAR */
+  #statusBar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 10px 20px;
+    font-size: 13px;
+    color: var(--text-muted);
+    display: none;
+    z-index: 200;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Yahoo <span>EN</span> Reader</div>
+  <div class="tag">英語学習モード</div>
+  <div class="header-right">
+    <button id="backBtn" onclick="showList()">← 一覧に戻る</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- LIST VIEW -->
+  <div id="listView">
+    <div class="categories" id="categoryTabs"></div>
+    <div id="newsList">
+      <div class="loading"><div class="spinner"></div>ニュースを読み込み中...</div>
+    </div>
+  </div>
+
+  <!-- ARTICLE VIEW -->
+  <div id="articleView">
+    <div class="article-header">
+      <div class="article-title" id="artTitleEn"></div>
+      <div class="article-title-jp" id="artTitleJp"></div>
+      <div class="article-date" id="artDate"></div>
+    </div>
+
+    <div class="translation-bar">
+      <label>📖 和訳を表示する（段落ごとに英文の下に表示）</label>
+      <label class="toggle">
+        <input type="checkbox" id="showJpToggle" onchange="toggleJpAll()">
+        <span class="toggle-track"></span>
+        <span class="toggle-thumb"></span>
+      </label>
+    </div>
+
+    <div class="notice">
+      💡 <strong>単語をクリック</strong>すると日本語訳が出ます。和訳は上のトグルでON/OFF。
+    </div>
+
+    <div id="articleBody"></div>
+  </div>
+
+</div>
+
+<div id="tooltip">
+  <div class="word-en" id="ttWord"></div>
+  <div class="word-jp" id="ttJp"></div>
+</div>
+
+<div id="statusBar" id="statusBar"></div>
+
+<script>
+// =====================
+// CONFIG
+// =====================
+const PROXIES = [
+  'https://corsproxy.io/?',
+  'https://api.allorigins.win/raw?url=',
+  'https://thingproxy.freeboard.io/fetch/',
+];
+let proxyIndex = 0;
+function getProxy() { return PROXIES[proxyIndex % PROXIES.length]; }
+
+async function fetchWithProxy(targetUrl) {
+  for (let i = 0; i < PROXIES.length; i++) {
+    try {
+      const proxy = PROXIES[(proxyIndex + i) % PROXIES.length];
+      const res = await fetch(proxy + encodeURIComponent(targetUrl), { signal: AbortSignal.timeout(8000) });
+      if (res.ok) {
+        proxyIndex = (proxyIndex + i) % PROXIES.length;
+        return res;
+      }
+    } catch(e) { /* try next */ }
+  }
+  throw new Error('全てのプロキシで接続失敗。ネット接続を確認してください。');
+}
+
+const MYMEMORY = 'https://api.mymemory.translated.net/get';
+
+const CATEGORIES = [
+  { label: 'トップ', rss: 'https://news.yahoo.co.jp/rss/topics/top-picks.xml' },
+  { label: '国内', rss: 'https://news.yahoo.co.jp/rss/topics/domestic.xml' },
+  { label: '国際', rss: 'https://news.yahoo.co.jp/rss/topics/world.xml' },
+  { label: 'ビジネス', rss: 'https://news.yahoo.co.jp/rss/topics/business.xml' },
+  { label: 'テクノロジー', rss: 'https://news.yahoo.co.jp/rss/topics/it.xml' },
+  { label: 'スポーツ', rss: 'https://news.yahoo.co.jp/rss/topics/sports.xml' },
+  { label: 'エンタメ', rss: 'https://news.yahoo.co.jp/rss/topics/entertainment.xml' },
+];
+
+let currentCat = 0;
+let wordCache = {};
+let articles = [];
+
+// =====================
+// INIT
+// =====================
+window.onload = () => {
+  buildCategoryTabs();
+  loadRSS(currentCat);
+};
+
+function buildCategoryTabs() {
+  const tabs = document.getElementById('categoryTabs');
+  CATEGORIES.forEach((cat, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn' + (i === 0 ? ' active' : '');
+    btn.textContent = cat.label;
+    btn.onclick = () => {
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentCat = i;
+      loadRSS(i);
+    };
+    tabs.appendChild(btn);
+  });
+}
+
+// =====================
+// RSS LOAD
+// =====================
+async function loadRSS(catIndex) {
+  const list = document.getElementById('newsList');
+  list.innerHTML = '<div class="loading"><div class="spinner"></div>読み込み中...</div>';
+  articles = [];
+
+  try {
+    const res = await fetchWithProxy(CATEGORIES[catIndex].rss);
+    const text = await res.text();
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(text, 'text/xml');
+    const items = xml.querySelectorAll('item');
+
+    const rawArticles = Array.from(items).slice(0, 12).map(item => ({
+      titleJp: item.querySelector('title')?.textContent || '',
+      link: item.querySelector('link')?.textContent || '',
+      pubDate: item.querySelector('pubDate')?.textContent || '',
+      description: item.querySelector('description')?.textContent || '',
+    }));
+
+    // Translate titles
+    list.innerHTML = '<div class="loading"><div class="spinner"></div>タイトルを英訳中...</div>';
+    articles = await Promise.all(rawArticles.map(async (a, i) => {
+      const titleEn = await translateText(a.titleJp);
+      return { ...a, titleEn, index: i };
+    }));
+
+    renderList();
+  } catch (e) {
+    list.innerHTML = `
+      <div class="notice">
+        <strong>⚠️ 読み込み失敗</strong><br>
+        ${e.message}<br><br>
+        <strong>対処法：</strong><br>
+        1. ページをリロードして再試行<br>
+        2. VPNをOFF/ONしてみる<br>
+        3. PCのChromeで開く（最も安定）<br><br>
+        <button onclick="loadRSS(${catIndex})" style="background:var(--accent);color:#fff;border:none;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;">🔄 再試行</button>
+      </div>`;
+  }
+}
+
+function renderList() {
+  const list = document.getElementById('newsList');
+  list.innerHTML = '';
+  articles.forEach((a, i) => {
+    const card = document.createElement('div');
+    card.className = 'news-card';
+    const date = a.pubDate ? new Date(a.pubDate).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+    card.innerHTML = `
+      <div class="news-num">${String(i+1).padStart(2,'0')}</div>
+      <div class="news-content">
+        <div class="news-title-jp">${escHtml(a.titleJp)}</div>
+        <div class="news-title-en">${escHtml(a.titleEn)}</div>
+        <div class="news-meta"><span>📅 ${date}</span></div>
+      </div>
+      <div class="arrow-icon">›</div>
+    `;
+    card.onclick = () => openArticle(i);
+    list.appendChild(card);
+  });
+}
+
+// =====================
+// ARTICLE VIEW
+// =====================
+async function openArticle(index) {
+  const a = articles[index];
+  document.getElementById('listView').style.display = 'none';
+  document.getElementById('articleView').style.display = 'block';
+  document.getElementById('backBtn').style.display = 'block';
+  document.getElementById('showJpToggle').checked = false;
+  document.getElementById('artTitleEn').textContent = a.titleEn;
+  document.getElementById('artTitleJp').textContent = a.titleJp;
+  const date = a.pubDate ? new Date(a.pubDate).toLocaleString('ja-JP') : '';
+  document.getElementById('artDate').textContent = date;
+  document.getElementById('articleBody').innerHTML = '<div class="loading"><div class="spinner"></div>記事を取得・翻訳中...</div>';
+  window.scrollTo(0, 0);
+
+  try {
+    // Fetch article HTML
+    const res = await fetchWithProxy(a.link);
+    const html = await res.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+    // Extract article paragraphs
+    let paragraphs = [];
+    // Try common Yahoo News article selectors
+    const selectors = [
+      '.article_body p',
+      '.articleBody p',
+      '[class*="article"] p',
+      'article p',
+      '.paragraph p',
+      'p',
+    ];
+    for (const sel of selectors) {
+      const els = doc.querySelectorAll(sel);
+      const texts = Array.from(els)
+        .map(el => el.textContent.trim())
+        .filter(t => t.length > 20 && !t.includes('続きを読む') && !t.includes('広告'));
+      if (texts.length > 0) {
+        paragraphs = texts.slice(0, 20);
+        break;
+      }
+    }
+
+    if (paragraphs.length === 0) {
+      // Fall back to description
+      const desc = a.description.replace(/<[^>]+>/g, '').trim();
+      if (desc) paragraphs = [desc];
+      else throw new Error('記事本文が取得できませんでした');
+    }
+
+    // Translate paragraphs
+    showStatus('翻訳中... 0/' + paragraphs.length);
+    const translated = [];
+    for (let i = 0; i < paragraphs.length; i++) {
+      const en = await translateText(paragraphs[i]);
+      translated.push({ jp: paragraphs[i], en });
+      showStatus(`翻訳中... ${i+1}/${paragraphs.length}`);
+    }
+    hideStatus();
+    renderArticle(translated);
+
+  } catch (e) {
+    hideStatus();
+    document.getElementById('articleBody').innerHTML = `<div class="notice"><strong>⚠️ 記事取得失敗</strong><br>${e.message}<br><br>Yahoo!ニュースの記事構造によっては取得できない場合があります。</div>`;
+  }
+}
+
+function renderArticle(paragraphs) {
+  const body = document.getElementById('articleBody');
+  body.innerHTML = '';
+  paragraphs.forEach((p, i) => {
+    const block = document.createElement('div');
+    block.className = 'para-block';
+
+    // English with clickable words
+    const enDiv = document.createElement('div');
+    enDiv.className = 'en-para';
+    enDiv.innerHTML = makeClickableWords(p.en);
+
+    // Japanese (hidden by default)
+    const jpDiv = document.createElement('div');
+    jpDiv.className = 'jp-para';
+    jpDiv.textContent = p.jp;
+    jpDiv.dataset.index = i;
+
+    block.appendChild(enDiv);
+    block.appendChild(jpDiv);
+    body.appendChild(block);
+  });
+
+  // Word click handler
+  body.addEventListener('click', onWordClick);
+}
+
+function makeClickableWords(text) {
+  // Split preserving punctuation spacing
+  return text.replace(/([a-zA-Z']+)/g, (match) => {
+    const clean = match.replace(/'/g, '');
+    if (clean.length < 2) return match;
+    return `<span class="word" data-word="${escAttr(match)}">${escHtml(match)}</span>`;
+  });
+}
+
+// =====================
+// WORD TOOLTIP
+// =====================
+const tooltip = document.getElementById('tooltip');
+const ttWord = document.getElementById('ttWord');
+const ttJp = document.getElementById('ttJp');
+let tooltipTimeout;
+
+async function onWordClick(e) {
+  const span = e.target.closest('.word');
+  if (!span) { hideTooltip(); return; }
+
+  const word = span.dataset.word;
+  ttWord.textContent = word;
+  ttJp.textContent = '翻訳中...';
+  span.classList.add('looked-up');
+
+  positionTooltip(e);
+  tooltip.style.display = 'block';
+
+  if (wordCache[word.toLowerCase()]) {
+    ttJp.textContent = wordCache[word.toLowerCase()];
+    return;
+  }
+
+  try {
+    const jp = await translateText(word, 'en', 'ja');
+    wordCache[word.toLowerCase()] = jp;
+    ttJp.textContent = jp;
+  } catch {
+    ttJp.textContent = '取得できませんでした';
+  }
+}
+
+function positionTooltip(e) {
+  const x = e.clientX;
+  const y = e.clientY;
+  const tw = 220, th = 70;
+  let left = x + 12;
+  let top = y - th - 12;
+  if (left + tw > window.innerWidth - 10) left = x - tw - 12;
+  if (top < 10) top = y + 20;
+  tooltip.style.left = left + 'px';
+  tooltip.style.top = top + 'px';
+}
+
+function hideTooltip() { tooltip.style.display = 'none'; }
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.word')) hideTooltip();
+});
+
+// =====================
+// JAPANESE TOGGLE
+// =====================
+function toggleJpAll() {
+  const show = document.getElementById('showJpToggle').checked;
+  document.querySelectorAll('.jp-para').forEach(el => {
+    el.classList.toggle('visible', show);
+  });
+}
+
+// =====================
+// BACK
+// =====================
+function showList() {
+  document.getElementById('articleView').style.display = 'none';
+  document.getElementById('listView').style.display = 'block';
+  document.getElementById('backBtn').style.display = 'none';
+  hideTooltip();
+}
+
+// =====================
+// TRANSLATE (MyMemory)
+// =====================
+const translateCache = {};
+async function translateText(text, from='ja', to='en') {
+  const key = `${from}:${to}:${text}`;
+  if (translateCache[key]) return translateCache[key];
+
+  // MyMemory has 500 char limit per call, split if needed
+  if (text.length > 480) {
+    const chunks = splitText(text, 480);
+    const results = await Promise.all(chunks.map(c => translateText(c, from, to)));
+    const joined = results.join(' ');
+    translateCache[key] = joined;
+    return joined;
+  }
+
+  try {
+    const url = `${MYMEMORY}?q=${encodeURIComponent(text)}&langpair=${from}|${to}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const translated = data?.responseData?.translatedText || text;
+    translateCache[key] = translated;
+    return translated;
+  } catch {
+    return text;
+  }
+}
+
+function splitText(text, maxLen) {
+  const chunks = [];
+  let start = 0;
+  while (start < text.length) {
+    let end = Math.min(start + maxLen, text.length);
+    // Try to split at sentence boundary
+    if (end < text.length) {
+      const last = Math.max(
+        text.lastIndexOf('。', end),
+        text.lastIndexOf('、', end),
+        text.lastIndexOf(' ', end)
+      );
+      if (last > start) end = last + 1;
+    }
+    chunks.push(text.slice(start, end));
+    start = end;
+  }
+  return chunks;
+}
+
+// =====================
+// STATUS
+// =====================
+const statusBar = document.getElementById('statusBar');
+function showStatus(msg) {
+  statusBar.textContent = msg;
+  statusBar.style.display = 'block';
+}
+function hideStatus() {
+  statusBar.style.display = 'none';
+}
+
+// =====================
+// UTILS
+// =====================
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) {
+  return s.replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
