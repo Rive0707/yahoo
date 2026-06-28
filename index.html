@@ -101,6 +101,7 @@ header {
 .news-content { flex: 1; }
 .news-title-jp { font-family: 'Noto Sans JP', sans-serif; font-size: 12px; color: var(--muted); margin-bottom: 5px; line-height: 1.5; }
 .news-title-en { font-size: 15px; font-weight: 500; line-height: 1.5; }
+.news-title-en.translating { color: var(--muted); font-style: italic; font-size: 13px; }
 .news-meta { margin-top: 6px; font-size: 11px; color: var(--muted); }
 .news-arrow { color: var(--muted); font-size: 18px; padding-top: 2px; transition: transform .2s; }
 .news-card:hover .news-arrow { transform: translateX(4px); color: var(--accent); }
@@ -402,18 +403,25 @@ async function loadRSS() {
     const text = await res.text();
     const xml = new DOMParser().parseFromString(text, 'text/xml');
     const items = xml.querySelectorAll('item');
-    const raw = Array.from(items).slice(0, 12).map(item => ({
+    const raw = Array.from(items).slice(0, 30).map(item => ({
       titleJp: item.querySelector('title')?.textContent?.replace(/<!\[CDATA\[|\]\]>/g,'').trim() || '',
       link: item.querySelector('link')?.textContent?.trim() || '',
       pubDate: item.querySelector('pubDate')?.textContent || '',
       description: item.querySelector('description')?.textContent?.replace(/<[^>]+>/g,'').trim() || '',
     }));
 
-    list.innerHTML = '<div class="loading"><div class="spinner"></div>タイトルを英訳中...</div>';
-    articles = await Promise.all(raw.map(async (a, i) => ({
-      ...a, titleEn: await translate(a.titleJp), index: i
-    })));
+    // まず日本語タイトルで即表示
+    articles = raw.map((a, i) => ({ ...a, titleEn: a.titleJp, index: i, translating: true }));
     renderList();
+
+    // バックグラウンドで順次英訳して更新
+    raw.forEach(async (a, i) => {
+      const titleEn = await translate(a.titleJp);
+      articles[i].titleEn = titleEn;
+      articles[i].translating = false;
+      const el = document.querySelector(\`.news-title-en[data-idx="\${i}"]\`);
+      if (el) { el.textContent = titleEn; el.classList.remove('translating'); }
+    });
   } catch(e) {
     list.innerHTML = `<div class="notice"><strong>⚠️ 読み込み失敗</strong><br>${e.message}<br>
       <button class="retry-btn" onclick="loadRSS()">🔄 再試行</button></div>`;
@@ -431,7 +439,7 @@ function renderList() {
       <div class="news-num">${String(i+1).padStart(2,'0')}</div>
       <div class="news-content">
         <div class="news-title-jp">${esc(a.titleJp)}</div>
-        <div class="news-title-en">${esc(a.titleEn)}</div>
+        <div class="news-title-en ${a.translating ? 'translating' : ''}" data-idx="${i}">${esc(a.titleEn)}</div>
         <div class="news-meta">📅 ${date}</div>
       </div>
       <div class="news-arrow">›</div>`;
