@@ -18,7 +18,7 @@
   --border: #2a2f45;
   --warn: #fbbf24;
   --yahoo: #ff0033;
-  --yomiuri: #c0392b;
+  --nhk: #1a6fc4;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -60,7 +60,7 @@ header {
   width: 7px; height: 7px; border-radius: 50%;
 }
 .src-btn[data-src="yahoo"] .src-dot { background: var(--yahoo); }
-.src-btn[data-src="yomiuri"] .src-dot { background: var(--yomiuri); }
+.src-btn[data-src="nhk"] .src-dot { background: var(--nhk); }
 .src-btn.active { color: var(--text); border-bottom-color: var(--accent); }
 
 /* ── CATEGORY TABS ── */
@@ -204,7 +204,7 @@ header {
   <button class="src-btn active" data-src="yahoo" onclick="switchSource('yahoo')">
     <span class="src-dot"></span> Yahoo! ニュース
   </button>
-  <button class="src-btn" data-src="yomiuri" onclick="switchSource('yomiuri')">
+  <button class="src-btn" data-src="nhk" onclick="switchSource('nhk')">
     <span class="src-dot"></span> 読売新聞
   </button>
 </div>
@@ -269,18 +269,18 @@ const SOURCES = {
       { label: 'エンタメ',     rss: 'https://news.yahoo.co.jp/rss/topics/entertainment.xml' },
     ]
   },
-  yomiuri: {
-    name: '読売新聞',
-    color: '#c0392b',
+  nhk: {
+    name: 'NHK ニュース',
+    color: '#1a6fc4',
     categories: [
-      { label: 'トップ',   rss: 'https://www.yomiuri.co.jp/feed/' },
-      { label: '政治',     rss: 'https://www.yomiuri.co.jp/politics/feed/' },
-      { label: '経済',     rss: 'https://www.yomiuri.co.jp/economy/feed/' },
-      { label: '社会',     rss: 'https://www.yomiuri.co.jp/national/feed/' },
-      { label: '国際',     rss: 'https://www.yomiuri.co.jp/world/feed/' },
-      { label: 'スポーツ', rss: 'https://www.yomiuri.co.jp/sports/feed/' },
-      { label: 'サイエンス', rss: 'https://www.yomiuri.co.jp/science/feed/' },
-      { label: 'エンタメ', rss: 'https://www.yomiuri.co.jp/culture/feed/' },
+      { label: 'トップ',   rss: 'https://www3.nhk.or.jp/rss/news/cat0.xml' },
+      { label: '社会',     rss: 'https://www3.nhk.or.jp/rss/news/cat1.xml' },
+      { label: '科学',     rss: 'https://www3.nhk.or.jp/rss/news/cat3.xml' },
+      { label: '政治',     rss: 'https://www3.nhk.or.jp/rss/news/cat4.xml' },
+      { label: '経済',     rss: 'https://www3.nhk.or.jp/rss/news/cat5.xml' },
+      { label: '国際',     rss: 'https://www3.nhk.or.jp/rss/news/cat6.xml' },
+      { label: 'スポーツ', rss: 'https://www3.nhk.or.jp/rss/news/cat7.xml' },
+      { label: '文化',     rss: 'https://www3.nhk.or.jp/rss/news/cat2.xml' },
     ]
   }
 };
