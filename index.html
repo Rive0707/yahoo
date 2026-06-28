@@ -404,10 +404,13 @@ async function loadRSS() {
 
   const cat = SOURCES[currentSrc].categories[currentCat];
   try {
+    list.innerHTML = '<div class="loading"><div class="spinner"></div>プロキシ接続中... (allorigins)</div>';
     const res = await fetchWithProxy(cat.rss);
+    list.innerHTML = '<div class="loading"><div class="spinner"></div>RSS解析中...</div>';
     const text = await res.text();
     const xml = new DOMParser().parseFromString(text, 'text/xml');
     const items = xml.querySelectorAll('item');
+    if (items.length === 0) throw new Error('記事が0件でした。RSSの形式が変わった可能性があります。');
     const raw = Array.from(items).slice(0, 30).map(item => ({
       titleJp: item.querySelector('title')?.textContent?.replace(/<!\[CDATA\[|\]\]>/g,'').trim() || '',
       link: item.querySelector('link')?.textContent?.trim() || '',
@@ -415,18 +418,11 @@ async function loadRSS() {
       description: item.querySelector('description')?.textContent?.replace(/<[^>]+>/g,'').trim() || '',
     }));
 
-    // まず日本語タイトルで即表示
-    articles = raw.map((a, i) => ({ ...a, titleEn: a.titleJp, index: i, translating: true }));
+    list.innerHTML = '<div class="loading"><div class="spinner"></div>タイトルを英訳中...</div>';
+    articles = await Promise.all(raw.map(async (a, i) => ({
+      ...a, titleEn: await translate(a.titleJp), index: i
+    })));
     renderList();
-
-    // バックグラウンドで順次英訳して更新
-    raw.forEach(async (a, i) => {
-      const titleEn = await translate(a.titleJp);
-      articles[i].titleEn = titleEn;
-      articles[i].translating = false;
-      const el = document.querySelector(\`.news-title-en[data-idx="\${i}"]\`);
-      if (el) { el.textContent = titleEn; el.classList.remove('translating'); }
-    });
   } catch(e) {
     list.innerHTML = `<div class="notice"><strong>⚠️ 読み込み失敗</strong><br>${e.message}<br>
       <button class="retry-btn" onclick="loadRSS()">🔄 再試行</button></div>`;
