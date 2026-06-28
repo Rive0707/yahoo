@@ -3,438 +3,378 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Yahoo News → English Reader</title>
+<title>JP News English Reader</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500&display=swap');
 
-  :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface2: #22263a;
-    --accent: #6c8eff;
-    --accent2: #a78bfa;
-    --text: #e8eaf0;
-    --text-muted: #7b82a0;
-    --border: #2a2f45;
-    --success: #34d399;
-    --warning: #fbbf24;
-  }
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #22263a;
+  --accent: #6c8eff;
+  --accent2: #a78bfa;
+  --text: #e8eaf0;
+  --muted: #7b82a0;
+  --border: #2a2f45;
+  --warn: #fbbf24;
+  --yahoo: #ff0033;
+  --yomiuri: #c0392b;
+}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-  body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
+/* ── HEADER ── */
+header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; gap: 10px;
+}
+.logo { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; }
+.logo span { color: var(--accent); }
+#backBtn {
+  display: none; margin-left: auto;
+  background: var(--surface2); color: var(--muted);
+  border: 1px solid var(--border); padding: 6px 14px;
+  border-radius: 8px; cursor: pointer; font-size: 13px;
+  font-family: 'Inter', sans-serif; transition: all .2s;
+}
+#backBtn:hover { color: var(--text); border-color: var(--accent); }
 
-  /* HEADER */
-  header {
-    padding: 18px 24px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: var(--surface);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .logo {
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: -0.5px;
-  }
-  .logo span { color: var(--accent); }
-  .tag {
-    font-size: 11px;
-    background: var(--surface2);
-    color: var(--accent2);
-    padding: 3px 8px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    font-weight: 500;
-  }
-  .header-right {
-    margin-left: auto;
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
-  #backBtn {
-    display: none;
-    background: var(--surface2);
-    color: var(--text-muted);
-    border: 1px solid var(--border);
-    padding: 6px 14px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: all 0.2s;
-  }
-  #backBtn:hover { color: var(--text); border-color: var(--accent); }
+/* ── SOURCE TABS ── */
+.source-tabs {
+  display: flex; border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.src-btn {
+  flex: 1; padding: 12px 0; font-size: 13px; font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  background: none; border: none; color: var(--muted);
+  cursor: pointer; transition: all .2s;
+  border-bottom: 2px solid transparent;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.src-btn .src-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+}
+.src-btn[data-src="yahoo"] .src-dot { background: var(--yahoo); }
+.src-btn[data-src="yomiuri"] .src-dot { background: var(--yomiuri); }
+.src-btn.active { color: var(--text); border-bottom-color: var(--accent); }
 
-  /* LAYOUT */
-  .container { max-width: 860px; margin: 0 auto; padding: 28px 20px; }
+/* ── CATEGORY TABS ── */
+.cat-scroll {
+  overflow-x: auto; padding: 12px 16px; gap: 8px;
+  display: flex; background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  scrollbar-width: none;
+}
+.cat-scroll::-webkit-scrollbar { display: none; }
+.cat-btn {
+  white-space: nowrap; background: var(--surface);
+  border: 1px solid var(--border); color: var(--muted);
+  padding: 6px 14px; border-radius: 20px; cursor: pointer;
+  font-size: 12px; font-family: 'Inter', sans-serif; transition: all .2s;
+  flex-shrink: 0;
+}
+.cat-btn.active, .cat-btn:hover {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
 
-  /* CATEGORY TABS */
-  .categories {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 24px;
-  }
-  .cat-btn {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    padding: 7px 16px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 13px;
-    font-family: 'Inter', sans-serif;
-    transition: all 0.2s;
-  }
-  .cat-btn:hover, .cat-btn.active {
-    background: var(--accent);
-    color: #fff;
-    border-color: var(--accent);
-  }
+/* ── CONTAINER ── */
+.container { max-width: 800px; margin: 0 auto; padding: 20px 16px; }
 
-  /* NEWS LIST */
-  #newsList { display: flex; flex-direction: column; gap: 12px; }
+/* ── NEWS CARDS ── */
+#newsList { display: flex; flex-direction: column; gap: 10px; }
+.news-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px 18px;
+  cursor: pointer; transition: all .2s;
+  display: flex; gap: 14px; align-items: flex-start;
+}
+.news-card:hover {
+  border-color: var(--accent); background: var(--surface2);
+  transform: translateY(-1px);
+}
+.news-num { font-size: 11px; color: var(--accent); font-weight: 600; min-width: 22px; padding-top: 2px; }
+.news-content { flex: 1; }
+.news-title-jp { font-family: 'Noto Sans JP', sans-serif; font-size: 12px; color: var(--muted); margin-bottom: 5px; line-height: 1.5; }
+.news-title-en { font-size: 15px; font-weight: 500; line-height: 1.5; }
+.news-meta { margin-top: 6px; font-size: 11px; color: var(--muted); }
+.news-arrow { color: var(--muted); font-size: 18px; padding-top: 2px; transition: transform .2s; }
+.news-card:hover .news-arrow { transform: translateX(4px); color: var(--accent); }
 
-  .news-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px 20px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    gap: 16px;
-    align-items: flex-start;
-  }
-  .news-card:hover {
-    border-color: var(--accent);
-    background: var(--surface2);
-    transform: translateY(-1px);
-  }
-  .news-num {
-    font-size: 12px;
-    color: var(--accent);
-    font-weight: 600;
-    min-width: 24px;
-    padding-top: 2px;
-  }
-  .news-content { flex: 1; }
-  .news-title-jp {
-    font-family: 'Noto Sans JP', sans-serif;
-    font-size: 14px;
-    color: var(--text-muted);
-    margin-bottom: 6px;
-    line-height: 1.5;
-  }
-  .news-title-en {
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 1.5;
-    color: var(--text);
-  }
-  .news-meta {
-    margin-top: 8px;
-    font-size: 11px;
-    color: var(--text-muted);
-    display: flex;
-    gap: 12px;
-  }
-  .arrow-icon {
-    color: var(--text-muted);
-    font-size: 18px;
-    padding-top: 2px;
-    transition: transform 0.2s;
-  }
-  .news-card:hover .arrow-icon { transform: translateX(4px); color: var(--accent); }
+/* ── LOADING ── */
+.loading { text-align: center; padding: 40px; color: var(--muted); }
+.spinner {
+  width: 32px; height: 32px; border: 3px solid var(--border);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: spin .8s linear infinite; margin: 0 auto 14px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-  /* LOADING */
-  .loading {
-    text-align: center;
-    padding: 48px;
-    color: var(--text-muted);
-  }
-  .spinner {
-    width: 36px; height: 36px;
-    border: 3px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 16px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* ── ARTICLE ── */
+#articleView { display: none; }
+.art-header { margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+.art-title-en { font-size: 22px; font-weight: 600; line-height: 1.4; margin-bottom: 8px; letter-spacing: -0.3px; }
+.art-title-jp { font-family: 'Noto Sans JP', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.6; }
+.art-date { font-size: 11px; color: var(--muted); margin-top: 6px; }
+.art-source { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); margin-top: 6px; }
+.art-source-dot { width: 6px; height: 6px; border-radius: 50%; }
 
-  /* ARTICLE VIEW */
-  #articleView { display: none; }
+/* ── TRANSLATION TOGGLE BAR ── */
+.jp-toggle-bar {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 11px 15px; margin-bottom: 20px;
+}
+.jp-toggle-bar label:first-child { font-size: 13px; color: var(--muted); flex: 1; }
+.toggle { position: relative; width: 40px; height: 22px; cursor: pointer; }
+.toggle input { display: none; }
+.t-track { width: 40px; height: 22px; background: var(--border); border-radius: 11px; display: block; transition: background .2s; }
+.toggle input:checked + .t-track { background: var(--accent); }
+.t-thumb { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: left .2s; pointer-events: none; }
+.toggle input:checked ~ .t-thumb { left: 21px; }
 
-  .article-header {
-    margin-bottom: 28px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border);
-  }
-  .article-title {
-    font-size: 24px;
-    font-weight: 600;
-    line-height: 1.4;
-    margin-bottom: 10px;
-    letter-spacing: -0.3px;
-  }
-  .article-title-jp {
-    font-family: 'Noto Sans JP', sans-serif;
-    font-size: 14px;
-    color: var(--text-muted);
-    line-height: 1.6;
-  }
-  .article-date { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+/* ── ARTICLE BODY ── */
+#articleBody { line-height: 1.9; }
+.para-block { margin-bottom: 22px; }
+.en-para { font-size: 15px; line-height: 1.9; color: var(--text); }
+.jp-para {
+  font-family: 'Noto Sans JP', sans-serif; font-size: 12px;
+  color: var(--muted); line-height: 1.8; margin-top: 7px;
+  padding: 9px 13px; background: var(--surface2);
+  border-left: 3px solid var(--accent2); border-radius: 0 8px 8px 0;
+  display: none;
+}
+.jp-para.visible { display: block; }
 
-  /* TRANSLATION TOGGLE */
-  .translation-bar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 16px;
-    margin-bottom: 24px;
-  }
-  .translation-bar label {
-    font-size: 13px;
-    color: var(--text-muted);
-    flex: 1;
-  }
-  .toggle {
-    position: relative;
-    width: 40px; height: 22px;
-    cursor: pointer;
-  }
-  .toggle input { display: none; }
-  .toggle-track {
-    width: 40px; height: 22px;
-    background: var(--border);
-    border-radius: 11px;
-    transition: background 0.2s;
-    display: block;
-  }
-  .toggle input:checked + .toggle-track { background: var(--accent); }
-  .toggle-thumb {
-    position: absolute;
-    top: 3px; left: 3px;
-    width: 16px; height: 16px;
-    background: #fff;
-    border-radius: 50%;
-    transition: left 0.2s;
-    pointer-events: none;
-  }
-  .toggle input:checked ~ .toggle-thumb { left: 21px; }
+/* ── WORD ── */
+.word { cursor: pointer; border-bottom: 1px dashed transparent; transition: all .15s; border-radius: 2px; padding: 0 1px; }
+.word:hover { background: rgba(108,142,255,.15); border-bottom-color: var(--accent); color: #fff; }
+.word.looked-up { border-bottom-color: var(--accent2); color: var(--accent2); }
 
-  /* ARTICLE BODY */
-  #articleBody { line-height: 1.9; }
+/* ── TOOLTIP ── */
+#tooltip {
+  position: fixed; background: #1e2235; border: 1px solid var(--accent);
+  border-radius: 10px; padding: 10px 14px; font-size: 13px;
+  max-width: 200px; z-index: 9999; display: none;
+  box-shadow: 0 8px 32px rgba(0,0,0,.4); pointer-events: none;
+}
+#tt-word { font-weight: 600; color: var(--text); margin-bottom: 3px; }
+#tt-jp { color: var(--accent2); font-family: 'Noto Sans JP', sans-serif; font-size: 14px; }
 
-  .para-block { margin-bottom: 24px; }
+/* ── NOTICE ── */
+.notice {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 18px; font-size: 13px;
+  color: var(--muted); margin-bottom: 18px; line-height: 1.6;
+}
+.notice strong { color: var(--warn); }
+.retry-btn {
+  background: var(--accent); color: #fff; border: none;
+  padding: 8px 18px; border-radius: 8px; cursor: pointer;
+  font-size: 13px; margin-top: 10px; font-family: 'Inter', sans-serif;
+}
 
-  .en-para {
-    font-size: 16px;
-    line-height: 1.9;
-    color: var(--text);
-  }
+/* ── HINT ── */
+.hint { font-size: 12px; color: var(--muted); margin-bottom: 18px; }
+.hint strong { color: var(--accent); }
 
-  .jp-para {
-    font-family: 'Noto Sans JP', sans-serif;
-    font-size: 13px;
-    color: var(--text-muted);
-    line-height: 1.8;
-    margin-top: 8px;
-    padding: 10px 14px;
-    background: var(--surface2);
-    border-left: 3px solid var(--accent2);
-    border-radius: 0 8px 8px 0;
-    display: none;
-  }
-  .jp-para.visible { display: block; }
-
-  /* WORD */
-  .word {
-    cursor: pointer;
-    border-bottom: 1px dashed transparent;
-    transition: all 0.15s;
-    border-radius: 2px;
-    padding: 0 1px;
-  }
-  .word:hover {
-    background: rgba(108, 142, 255, 0.15);
-    border-bottom-color: var(--accent);
-    color: #fff;
-  }
-  .word.looked-up {
-    border-bottom-color: var(--accent2);
-    color: var(--accent2);
-  }
-
-  /* TOOLTIP */
-  #tooltip {
-    position: fixed;
-    background: #1e2235;
-    border: 1px solid var(--accent);
-    border-radius: 10px;
-    padding: 10px 14px;
-    font-size: 13px;
-    max-width: 220px;
-    z-index: 9999;
-    display: none;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-    pointer-events: none;
-  }
-  #tooltip .word-en { font-weight: 600; color: var(--text); margin-bottom: 4px; }
-  #tooltip .word-jp { color: var(--accent2); font-family: 'Noto Sans JP', sans-serif; font-size: 14px; }
-  #tooltip .word-loading { color: var(--text-muted); font-size: 12px; }
-
-  /* ERROR / NOTICE */
-  .notice {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px 20px;
-    font-size: 13px;
-    color: var(--text-muted);
-    margin-bottom: 20px;
-    line-height: 1.6;
-  }
-  .notice strong { color: var(--warning); }
-
-  /* STATUS BAR */
-  #statusBar {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 10px 20px;
-    font-size: 13px;
-    color: var(--text-muted);
-    display: none;
-    z-index: 200;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-  }
+/* ── STATUS ── */
+#statusBar {
+  position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 24px; padding: 9px 18px; font-size: 12px;
+  color: var(--muted); display: none; z-index: 200;
+  box-shadow: 0 4px 20px rgba(0,0,0,.4); white-space: nowrap;
+}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">Yahoo <span>EN</span> Reader</div>
-  <div class="tag">英語学習モード</div>
-  <div class="header-right">
-    <button id="backBtn" onclick="showList()">← 一覧に戻る</button>
-  </div>
+  <div class="logo">JP News <span>EN</span> Reader</div>
+  <button id="backBtn" onclick="showList()">← 一覧</button>
 </header>
 
-<div class="container">
+<!-- SOURCE TABS -->
+<div class="source-tabs" id="sourceTabs">
+  <button class="src-btn active" data-src="yahoo" onclick="switchSource('yahoo')">
+    <span class="src-dot"></span> Yahoo! ニュース
+  </button>
+  <button class="src-btn" data-src="yomiuri" onclick="switchSource('yomiuri')">
+    <span class="src-dot"></span> 読売新聞
+  </button>
+</div>
 
+<!-- CATEGORY TABS -->
+<div class="cat-scroll" id="catTabs"></div>
+
+<div class="container">
   <!-- LIST VIEW -->
   <div id="listView">
-    <div class="categories" id="categoryTabs"></div>
     <div id="newsList">
-      <div class="loading"><div class="spinner"></div>ニュースを読み込み中...</div>
+      <div class="loading"><div class="spinner"></div>読み込み中...</div>
     </div>
   </div>
 
   <!-- ARTICLE VIEW -->
   <div id="articleView">
-    <div class="article-header">
-      <div class="article-title" id="artTitleEn"></div>
-      <div class="article-title-jp" id="artTitleJp"></div>
-      <div class="article-date" id="artDate"></div>
+    <div class="art-header">
+      <div class="art-title-en" id="artTitleEn"></div>
+      <div class="art-title-jp" id="artTitleJp"></div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <div class="art-date" id="artDate"></div>
+        <div class="art-source" id="artSource"></div>
+      </div>
     </div>
 
-    <div class="translation-bar">
-      <label>📖 和訳を表示する（段落ごとに英文の下に表示）</label>
+    <div class="jp-toggle-bar">
+      <label>和訳を段落ごとに表示</label>
       <label class="toggle">
-        <input type="checkbox" id="showJpToggle" onchange="toggleJpAll()">
-        <span class="toggle-track"></span>
-        <span class="toggle-thumb"></span>
+        <input type="checkbox" id="jpToggle" onchange="toggleJpAll()">
+        <span class="t-track"></span>
+        <span class="t-thumb"></span>
       </label>
     </div>
 
-    <div class="notice">
-      💡 <strong>単語をクリック</strong>すると日本語訳が出ます。和訳は上のトグルでON/OFF。
-    </div>
-
+    <div class="hint">💡 <strong>単語をタップ</strong>すると日本語訳が出ます</div>
     <div id="articleBody"></div>
   </div>
-
 </div>
 
 <div id="tooltip">
-  <div class="word-en" id="ttWord"></div>
-  <div class="word-jp" id="ttJp"></div>
+  <div id="tt-word"></div>
+  <div id="tt-jp"></div>
 </div>
-
-<div id="statusBar" id="statusBar"></div>
+<div id="statusBar"></div>
 
 <script>
-// =====================
-// CONFIG
-// =====================
+// ══════════════════════════════
+// DATA SOURCES
+// ══════════════════════════════
+const SOURCES = {
+  yahoo: {
+    name: 'Yahoo! ニュース',
+    color: '#ff0033',
+    categories: [
+      { label: 'トップ',       rss: 'https://news.yahoo.co.jp/rss/topics/top-picks.xml' },
+      { label: '国内',         rss: 'https://news.yahoo.co.jp/rss/topics/domestic.xml' },
+      { label: '国際',         rss: 'https://news.yahoo.co.jp/rss/topics/world.xml' },
+      { label: 'ビジネス',     rss: 'https://news.yahoo.co.jp/rss/topics/business.xml' },
+      { label: 'テクノロジー', rss: 'https://news.yahoo.co.jp/rss/topics/it.xml' },
+      { label: 'スポーツ',     rss: 'https://news.yahoo.co.jp/rss/topics/sports.xml' },
+      { label: 'エンタメ',     rss: 'https://news.yahoo.co.jp/rss/topics/entertainment.xml' },
+    ]
+  },
+  yomiuri: {
+    name: '読売新聞',
+    color: '#c0392b',
+    categories: [
+      { label: 'トップ',   rss: 'https://www.yomiuri.co.jp/feed/' },
+      { label: '政治',     rss: 'https://www.yomiuri.co.jp/politics/feed/' },
+      { label: '経済',     rss: 'https://www.yomiuri.co.jp/economy/feed/' },
+      { label: '社会',     rss: 'https://www.yomiuri.co.jp/national/feed/' },
+      { label: '国際',     rss: 'https://www.yomiuri.co.jp/world/feed/' },
+      { label: 'スポーツ', rss: 'https://www.yomiuri.co.jp/sports/feed/' },
+      { label: 'サイエンス', rss: 'https://www.yomiuri.co.jp/science/feed/' },
+      { label: 'エンタメ', rss: 'https://www.yomiuri.co.jp/culture/feed/' },
+    ]
+  }
+};
+
+// ══════════════════════════════
+// PROXY
+// ══════════════════════════════
 const PROXIES = [
   'https://corsproxy.io/?',
   'https://api.allorigins.win/raw?url=',
   'https://thingproxy.freeboard.io/fetch/',
 ];
 let proxyIndex = 0;
-function getProxy() { return PROXIES[proxyIndex % PROXIES.length]; }
 
-async function fetchWithProxy(targetUrl) {
+async function fetchWithProxy(url) {
   for (let i = 0; i < PROXIES.length; i++) {
     try {
       const proxy = PROXIES[(proxyIndex + i) % PROXIES.length];
-      const res = await fetch(proxy + encodeURIComponent(targetUrl), { signal: AbortSignal.timeout(8000) });
-      if (res.ok) {
-        proxyIndex = (proxyIndex + i) % PROXIES.length;
-        return res;
-      }
-    } catch(e) { /* try next */ }
+      const res = await fetch(proxy + encodeURIComponent(url), { signal: AbortSignal.timeout(9000) });
+      if (res.ok) { proxyIndex = (proxyIndex + i) % PROXIES.length; return res; }
+    } catch(e) {}
   }
-  throw new Error('全てのプロキシで接続失敗。ネット接続を確認してください。');
+  throw new Error('全プロキシ接続失敗。少し待って再試行してください。');
 }
 
+// ══════════════════════════════
+// TRANSLATE (MyMemory)
+// ══════════════════════════════
 const MYMEMORY = 'https://api.mymemory.translated.net/get';
+const tCache = {};
 
-const CATEGORIES = [
-  { label: 'トップ', rss: 'https://news.yahoo.co.jp/rss/topics/top-picks.xml' },
-  { label: '国内', rss: 'https://news.yahoo.co.jp/rss/topics/domestic.xml' },
-  { label: '国際', rss: 'https://news.yahoo.co.jp/rss/topics/world.xml' },
-  { label: 'ビジネス', rss: 'https://news.yahoo.co.jp/rss/topics/business.xml' },
-  { label: 'テクノロジー', rss: 'https://news.yahoo.co.jp/rss/topics/it.xml' },
-  { label: 'スポーツ', rss: 'https://news.yahoo.co.jp/rss/topics/sports.xml' },
-  { label: 'エンタメ', rss: 'https://news.yahoo.co.jp/rss/topics/entertainment.xml' },
-];
+async function translate(text, from='ja', to='en') {
+  const key = `${from}|${to}|${text}`;
+  if (tCache[key]) return tCache[key];
+  if (text.length > 480) {
+    const parts = splitText(text, 480);
+    const results = await Promise.all(parts.map(p => translate(p, from, to)));
+    return tCache[key] = results.join(' ');
+  }
+  try {
+    const r = await fetch(`${MYMEMORY}?q=${encodeURIComponent(text)}&langpair=${from}|${to}`);
+    const d = await r.json();
+    return tCache[key] = d?.responseData?.translatedText || text;
+  } catch { return tCache[key] = text; }
+}
 
+function splitText(text, max) {
+  const chunks = []; let s = 0;
+  while (s < text.length) {
+    let e = Math.min(s + max, text.length);
+    if (e < text.length) {
+      const b = Math.max(text.lastIndexOf('。', e), text.lastIndexOf(' ', e));
+      if (b > s) e = b + 1;
+    }
+    chunks.push(text.slice(s, e)); s = e;
+  }
+  return chunks;
+}
+
+// ══════════════════════════════
+// STATE
+// ══════════════════════════════
+let currentSrc = 'yahoo';
 let currentCat = 0;
-let wordCache = {};
 let articles = [];
+const wordCache = {};
 
-// =====================
+// ══════════════════════════════
 // INIT
-// =====================
+// ══════════════════════════════
 window.onload = () => {
-  buildCategoryTabs();
-  loadRSS(currentCat);
+  buildCatTabs('yahoo');
+  loadRSS();
 };
 
-function buildCategoryTabs() {
-  const tabs = document.getElementById('categoryTabs');
-  CATEGORIES.forEach((cat, i) => {
+// ══════════════════════════════
+// SOURCE SWITCH
+// ══════════════════════════════
+function switchSource(src) {
+  if (currentSrc === src) return;
+  currentSrc = src;
+  currentCat = 0;
+  document.querySelectorAll('.src-btn').forEach(b => b.classList.toggle('active', b.dataset.src === src));
+  buildCatTabs(src);
+  loadRSS();
+}
+
+// ══════════════════════════════
+// CAT TABS
+// ══════════════════════════════
+function buildCatTabs(src) {
+  const bar = document.getElementById('catTabs');
+  bar.innerHTML = '';
+  SOURCES[src].categories.forEach((cat, i) => {
     const btn = document.createElement('button');
     btn.className = 'cat-btn' + (i === 0 ? ' active' : '');
     btn.textContent = cat.label;
@@ -442,53 +382,41 @@ function buildCategoryTabs() {
       document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentCat = i;
-      loadRSS(i);
+      loadRSS();
     };
-    tabs.appendChild(btn);
+    bar.appendChild(btn);
   });
 }
 
-// =====================
+// ══════════════════════════════
 // RSS LOAD
-// =====================
-async function loadRSS(catIndex) {
+// ══════════════════════════════
+async function loadRSS() {
   const list = document.getElementById('newsList');
   list.innerHTML = '<div class="loading"><div class="spinner"></div>読み込み中...</div>';
   articles = [];
 
+  const cat = SOURCES[currentSrc].categories[currentCat];
   try {
-    const res = await fetchWithProxy(CATEGORIES[catIndex].rss);
+    const res = await fetchWithProxy(cat.rss);
     const text = await res.text();
-    const parser = new DOMParser();
-    const xml = parser.parseFromString(text, 'text/xml');
+    const xml = new DOMParser().parseFromString(text, 'text/xml');
     const items = xml.querySelectorAll('item');
-
-    const rawArticles = Array.from(items).slice(0, 12).map(item => ({
-      titleJp: item.querySelector('title')?.textContent || '',
-      link: item.querySelector('link')?.textContent || '',
+    const raw = Array.from(items).slice(0, 12).map(item => ({
+      titleJp: item.querySelector('title')?.textContent?.replace(/<!\[CDATA\[|\]\]>/g,'').trim() || '',
+      link: item.querySelector('link')?.textContent?.trim() || '',
       pubDate: item.querySelector('pubDate')?.textContent || '',
-      description: item.querySelector('description')?.textContent || '',
+      description: item.querySelector('description')?.textContent?.replace(/<[^>]+>/g,'').trim() || '',
     }));
 
-    // Translate titles
     list.innerHTML = '<div class="loading"><div class="spinner"></div>タイトルを英訳中...</div>';
-    articles = await Promise.all(rawArticles.map(async (a, i) => {
-      const titleEn = await translateText(a.titleJp);
-      return { ...a, titleEn, index: i };
-    }));
-
+    articles = await Promise.all(raw.map(async (a, i) => ({
+      ...a, titleEn: await translate(a.titleJp), index: i
+    })));
     renderList();
-  } catch (e) {
-    list.innerHTML = `
-      <div class="notice">
-        <strong>⚠️ 読み込み失敗</strong><br>
-        ${e.message}<br><br>
-        <strong>対処法：</strong><br>
-        1. ページをリロードして再試行<br>
-        2. VPNをOFF/ONしてみる<br>
-        3. PCのChromeで開く（最も安定）<br><br>
-        <button onclick="loadRSS(${catIndex})" style="background:var(--accent);color:#fff;border:none;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;">🔄 再試行</button>
-      </div>`;
+  } catch(e) {
+    list.innerHTML = `<div class="notice"><strong>⚠️ 読み込み失敗</strong><br>${e.message}<br>
+      <button class="retry-btn" onclick="loadRSS()">🔄 再試行</button></div>`;
   }
 }
 
@@ -496,268 +424,160 @@ function renderList() {
   const list = document.getElementById('newsList');
   list.innerHTML = '';
   articles.forEach((a, i) => {
+    const date = a.pubDate ? new Date(a.pubDate).toLocaleDateString('ja-JP',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
     const card = document.createElement('div');
     card.className = 'news-card';
-    const date = a.pubDate ? new Date(a.pubDate).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
     card.innerHTML = `
       <div class="news-num">${String(i+1).padStart(2,'0')}</div>
       <div class="news-content">
-        <div class="news-title-jp">${escHtml(a.titleJp)}</div>
-        <div class="news-title-en">${escHtml(a.titleEn)}</div>
-        <div class="news-meta"><span>📅 ${date}</span></div>
+        <div class="news-title-jp">${esc(a.titleJp)}</div>
+        <div class="news-title-en">${esc(a.titleEn)}</div>
+        <div class="news-meta">📅 ${date}</div>
       </div>
-      <div class="arrow-icon">›</div>
-    `;
+      <div class="news-arrow">›</div>`;
     card.onclick = () => openArticle(i);
     list.appendChild(card);
   });
 }
 
-// =====================
-// ARTICLE VIEW
-// =====================
-async function openArticle(index) {
-  const a = articles[index];
+// ══════════════════════════════
+// ARTICLE
+// ══════════════════════════════
+async function openArticle(idx) {
+  const a = articles[idx];
   document.getElementById('listView').style.display = 'none';
   document.getElementById('articleView').style.display = 'block';
   document.getElementById('backBtn').style.display = 'block';
-  document.getElementById('showJpToggle').checked = false;
+  document.getElementById('jpToggle').checked = false;
   document.getElementById('artTitleEn').textContent = a.titleEn;
   document.getElementById('artTitleJp').textContent = a.titleJp;
-  const date = a.pubDate ? new Date(a.pubDate).toLocaleString('ja-JP') : '';
-  document.getElementById('artDate').textContent = date;
-  document.getElementById('articleBody').innerHTML = '<div class="loading"><div class="spinner"></div>記事を取得・翻訳中...</div>';
-  window.scrollTo(0, 0);
+  document.getElementById('artDate').textContent = a.pubDate ? new Date(a.pubDate).toLocaleString('ja-JP') : '';
+  const src = SOURCES[currentSrc];
+  document.getElementById('artSource').innerHTML = `<span class="art-source-dot" style="background:${src.color}"></span>${src.name}`;
+  document.getElementById('articleBody').innerHTML = '<div class="loading"><div class="spinner"></div>記事取得・翻訳中...</div>';
+  window.scrollTo(0,0);
 
   try {
-    // Fetch article HTML
     const res = await fetchWithProxy(a.link);
     const html = await res.text();
     const doc = new DOMParser().parseFromString(html, 'text/html');
 
-    // Extract article paragraphs
-    let paragraphs = [];
-    // Try common Yahoo News article selectors
-    const selectors = [
-      '.article_body p',
-      '.articleBody p',
-      '[class*="article"] p',
-      'article p',
-      '.paragraph p',
-      'p',
-    ];
+    let paras = [];
+    const selectors = ['.article_body p','.articleBody p','[class*="article"] p','article p','.paragraph p','p'];
     for (const sel of selectors) {
       const els = doc.querySelectorAll(sel);
-      const texts = Array.from(els)
-        .map(el => el.textContent.trim())
-        .filter(t => t.length > 20 && !t.includes('続きを読む') && !t.includes('広告'));
-      if (texts.length > 0) {
-        paragraphs = texts.slice(0, 20);
-        break;
-      }
+      const texts = Array.from(els).map(el => el.textContent.trim())
+        .filter(t => t.length > 20 && !t.match(/続きを読む|広告|cookie|Cookie|javascript|JavaScript/i));
+      if (texts.length > 0) { paras = texts.slice(0, 18); break; }
     }
+    if (paras.length === 0 && a.description) paras = [a.description];
+    if (paras.length === 0) throw new Error('記事本文が取得できませんでした');
 
-    if (paragraphs.length === 0) {
-      // Fall back to description
-      const desc = a.description.replace(/<[^>]+>/g, '').trim();
-      if (desc) paragraphs = [desc];
-      else throw new Error('記事本文が取得できませんでした');
-    }
-
-    // Translate paragraphs
-    showStatus('翻訳中... 0/' + paragraphs.length);
+    showStatus(`翻訳中 0/${paras.length}`);
     const translated = [];
-    for (let i = 0; i < paragraphs.length; i++) {
-      const en = await translateText(paragraphs[i]);
-      translated.push({ jp: paragraphs[i], en });
-      showStatus(`翻訳中... ${i+1}/${paragraphs.length}`);
+    for (let i = 0; i < paras.length; i++) {
+      translated.push({ jp: paras[i], en: await translate(paras[i]) });
+      showStatus(`翻訳中 ${i+1}/${paras.length}`);
     }
     hideStatus();
     renderArticle(translated);
-
-  } catch (e) {
+  } catch(e) {
     hideStatus();
-    document.getElementById('articleBody').innerHTML = `<div class="notice"><strong>⚠️ 記事取得失敗</strong><br>${e.message}<br><br>Yahoo!ニュースの記事構造によっては取得できない場合があります。</div>`;
+    document.getElementById('articleBody').innerHTML =
+      `<div class="notice"><strong>⚠️ 取得失敗</strong><br>${e.message}</div>`;
   }
 }
 
-function renderArticle(paragraphs) {
+function renderArticle(paras) {
   const body = document.getElementById('articleBody');
   body.innerHTML = '';
-  paragraphs.forEach((p, i) => {
+  paras.forEach((p) => {
     const block = document.createElement('div');
     block.className = 'para-block';
-
-    // English with clickable words
     const enDiv = document.createElement('div');
     enDiv.className = 'en-para';
-    enDiv.innerHTML = makeClickableWords(p.en);
-
-    // Japanese (hidden by default)
+    enDiv.innerHTML = clickableWords(p.en);
     const jpDiv = document.createElement('div');
     jpDiv.className = 'jp-para';
     jpDiv.textContent = p.jp;
-    jpDiv.dataset.index = i;
-
-    block.appendChild(enDiv);
-    block.appendChild(jpDiv);
+    block.append(enDiv, jpDiv);
     body.appendChild(block);
   });
-
-  // Word click handler
   body.addEventListener('click', onWordClick);
 }
 
-function makeClickableWords(text) {
-  // Split preserving punctuation spacing
-  return text.replace(/([a-zA-Z']+)/g, (match) => {
-    const clean = match.replace(/'/g, '');
-    if (clean.length < 2) return match;
-    return `<span class="word" data-word="${escAttr(match)}">${escHtml(match)}</span>`;
+function clickableWords(text) {
+  return text.replace(/([a-zA-Z']+)/g, m => {
+    if (m.replace(/'/g,'').length < 2) return m;
+    return `<span class="word" data-w="${escA(m)}">${esc(m)}</span>`;
   });
 }
 
-// =====================
+// ══════════════════════════════
 // WORD TOOLTIP
-// =====================
+// ══════════════════════════════
 const tooltip = document.getElementById('tooltip');
-const ttWord = document.getElementById('ttWord');
-const ttJp = document.getElementById('ttJp');
-let tooltipTimeout;
+const ttWord = document.getElementById('tt-word');
+const ttJp = document.getElementById('tt-jp');
 
 async function onWordClick(e) {
   const span = e.target.closest('.word');
-  if (!span) { hideTooltip(); return; }
-
-  const word = span.dataset.word;
+  if (!span) { tooltip.style.display='none'; return; }
+  const word = span.dataset.w;
   ttWord.textContent = word;
-  ttJp.textContent = '翻訳中...';
+  ttJp.textContent = '…';
   span.classList.add('looked-up');
-
-  positionTooltip(e);
+  posTooltip(e);
   tooltip.style.display = 'block';
 
-  if (wordCache[word.toLowerCase()]) {
-    ttJp.textContent = wordCache[word.toLowerCase()];
-    return;
-  }
-
+  const key = word.toLowerCase();
+  if (wordCache[key]) { ttJp.textContent = wordCache[key]; return; }
   try {
-    const jp = await translateText(word, 'en', 'ja');
-    wordCache[word.toLowerCase()] = jp;
-    ttJp.textContent = jp;
-  } catch {
-    ttJp.textContent = '取得できませんでした';
-  }
+    wordCache[key] = await translate(word, 'en', 'ja');
+    ttJp.textContent = wordCache[key];
+  } catch { ttJp.textContent = '取得失敗'; }
 }
 
-function positionTooltip(e) {
-  const x = e.clientX;
-  const y = e.clientY;
-  const tw = 220, th = 70;
-  let left = x + 12;
-  let top = y - th - 12;
-  if (left + tw > window.innerWidth - 10) left = x - tw - 12;
-  if (top < 10) top = y + 20;
-  tooltip.style.left = left + 'px';
-  tooltip.style.top = top + 'px';
+function posTooltip(e) {
+  const x = e.clientX, y = e.clientY, w = 200, h = 65;
+  let left = x + 12, top = y - h - 12;
+  if (left + w > window.innerWidth - 8) left = x - w - 12;
+  if (top < 8) top = y + 20;
+  tooltip.style.left = left+'px'; tooltip.style.top = top+'px';
 }
 
-function hideTooltip() { tooltip.style.display = 'none'; }
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.word')) hideTooltip();
-});
+document.addEventListener('click', e => { if (!e.target.closest('.word')) tooltip.style.display='none'; });
 
-// =====================
-// JAPANESE TOGGLE
-// =====================
+// ══════════════════════════════
+// JP TOGGLE
+// ══════════════════════════════
 function toggleJpAll() {
-  const show = document.getElementById('showJpToggle').checked;
-  document.querySelectorAll('.jp-para').forEach(el => {
-    el.classList.toggle('visible', show);
-  });
+  const show = document.getElementById('jpToggle').checked;
+  document.querySelectorAll('.jp-para').forEach(el => el.classList.toggle('visible', show));
 }
 
-// =====================
+// ══════════════════════════════
 // BACK
-// =====================
+// ══════════════════════════════
 function showList() {
   document.getElementById('articleView').style.display = 'none';
   document.getElementById('listView').style.display = 'block';
   document.getElementById('backBtn').style.display = 'none';
-  hideTooltip();
+  tooltip.style.display = 'none';
 }
 
-// =====================
-// TRANSLATE (MyMemory)
-// =====================
-const translateCache = {};
-async function translateText(text, from='ja', to='en') {
-  const key = `${from}:${to}:${text}`;
-  if (translateCache[key]) return translateCache[key];
-
-  // MyMemory has 500 char limit per call, split if needed
-  if (text.length > 480) {
-    const chunks = splitText(text, 480);
-    const results = await Promise.all(chunks.map(c => translateText(c, from, to)));
-    const joined = results.join(' ');
-    translateCache[key] = joined;
-    return joined;
-  }
-
-  try {
-    const url = `${MYMEMORY}?q=${encodeURIComponent(text)}&langpair=${from}|${to}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    const translated = data?.responseData?.translatedText || text;
-    translateCache[key] = translated;
-    return translated;
-  } catch {
-    return text;
-  }
-}
-
-function splitText(text, maxLen) {
-  const chunks = [];
-  let start = 0;
-  while (start < text.length) {
-    let end = Math.min(start + maxLen, text.length);
-    // Try to split at sentence boundary
-    if (end < text.length) {
-      const last = Math.max(
-        text.lastIndexOf('。', end),
-        text.lastIndexOf('、', end),
-        text.lastIndexOf(' ', end)
-      );
-      if (last > start) end = last + 1;
-    }
-    chunks.push(text.slice(start, end));
-    start = end;
-  }
-  return chunks;
-}
-
-// =====================
+// ══════════════════════════════
 // STATUS
-// =====================
+// ══════════════════════════════
 const statusBar = document.getElementById('statusBar');
-function showStatus(msg) {
-  statusBar.textContent = msg;
-  statusBar.style.display = 'block';
-}
-function hideStatus() {
-  statusBar.style.display = 'none';
-}
+function showStatus(msg) { statusBar.textContent = msg; statusBar.style.display = 'block'; }
+function hideStatus() { statusBar.style.display = 'none'; }
 
-// =====================
+// ══════════════════════════════
 // UTILS
-// =====================
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function escAttr(s) {
-  return s.replace(/"/g,'&quot;');
-}
+// ══════════════════════════════
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escA(s) { return String(s).replace(/"/g,'&quot;'); }
 </script>
 </body>
 </html>
