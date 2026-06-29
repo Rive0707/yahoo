@@ -261,7 +261,7 @@ const SOURCES = {
     name: 'NHK Web Easy',
     color: '#00a050',
     categories: [
-      { label: 'すべて', json: 'https://www3.nhk.or.jp/news/easy/news-list.json' },
+      { label: 'すべて', easyDate: true },
     ]
   },
   nhk: {
@@ -397,23 +397,38 @@ async function loadRSS() {
   articles = [];
   const cat = SOURCES[currentSrc].categories[currentCat];
   try {
-    if (cat.json) {
-      // NHK Web Easy: JSON形式
-      const res = await fetchWithProxy(cat.json);
-      const text = await res.text();
-      const data = JSON.parse(text);
-      const raw = [];
-      Object.values(data).forEach(dateArr => {
-        if (Array.isArray(dateArr)) dateArr.forEach(item => raw.push(item));
-      });
-      const items = raw.slice(0, 30).map(item => ({
-        titleJp: item.title || '',
-        link: 'https://www3.nhk.or.jp/news/easy/' + item.news_id + '/' + item.news_id + '.html',
-        pubDate: item.news_prearranged_time || '',
-        description: item.title || '',
-      }));
+    if (cat.easyDate) {
+      // NHK Web Easy: 日付JSONから記事取得（過去3日分を試す）
+      const allItems = [];
+      const today = new Date();
+      for (let d = 0; d < 4; d++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - d);
+        const ymd = date.toISOString().slice(0,10).replace(/-/g,'');
+        const jsonUrl = `https://www3.nhk.or.jp/news/easy/${ymd}/${ymd}.json`;
+        try {
+          const res = await fetchWithProxy(jsonUrl);
+          const text = await res.text();
+          if (text.trim()[0] !== '[' && text.trim()[0] !== '{') continue;
+          const data = JSON.parse(text);
+          const arr = Array.isArray(data) ? data : Object.values(data).flat();
+          arr.forEach(item => {
+            if (item.news_id && item.title) {
+              allItems.push({
+                titleJp: item.title,
+                link: `https://www3.nhk.or.jp/news/easy/${item.news_id}/${item.news_id}.html`,
+                pubDate: item.news_prearranged_time || '',
+                description: item.title,
+              });
+            }
+          });
+        } catch(e) { /* その日のJSONがなければスキップ */ }
+      }
+
+      if (allItems.length === 0) throw new Error('NHK Easy の記事JSONが取得できませんでした');
+
       list.innerHTML = '<div class="loading"><div class="spinner"></div>タイトルを英訳中...</div>';
-      articles = await Promise.all(items.map(async (a, i) => ({
+      articles = await Promise.all(allItems.slice(0, 30).map(async (a, i) => ({
         ...a, titleEn: await translate(a.titleJp), index: i
       })));
       renderList();
