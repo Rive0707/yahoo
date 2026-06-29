@@ -17,7 +17,7 @@
   --muted: #7b82a0;
   --border: #2a2f45;
   --warn: #fbbf24;
-  --yahoo: #ff0033;
+  --easy: #00a050;
   --nhk: #1a6fc4;
 }
 
@@ -59,7 +59,7 @@ header {
 .src-btn .src-dot {
   width: 7px; height: 7px; border-radius: 50%;
 }
-.src-btn[data-src="yahoo"] .src-dot { background: var(--yahoo); }
+.src-btn[data-src="easy"] .src-dot { background: var(--easy); }
 .src-btn[data-src="nhk"] .src-dot { background: var(--nhk); }
 .src-btn.active { color: var(--text); border-bottom-color: var(--accent); }
 
@@ -202,8 +202,8 @@ header {
 
 <!-- SOURCE TABS -->
 <div class="source-tabs" id="sourceTabs">
-  <button class="src-btn active" data-src="yahoo" onclick="switchSource('yahoo')">
-    <span class="src-dot"></span> Yahoo! ニュース
+  <button class="src-btn active" data-src="easy" onclick="switchSource('easy')">
+    <span class="src-dot"></span> NHK Web Easy
   </button>
   <button class="src-btn" data-src="nhk" onclick="switchSource('nhk')">
     <span class="src-dot"></span> NHK ニュース
@@ -257,17 +257,11 @@ header {
 // DATA SOURCES
 // ══════════════════════════════
 const SOURCES = {
-  yahoo: {
-    name: 'Yahoo! ニュース',
-    color: '#ff0033',
+  easy: {
+    name: 'NHK Web Easy',
+    color: '#00a050',
     categories: [
-      { label: 'トップ',       rss: 'https://news.yahoo.co.jp/rss/topics/top-picks.xml' },
-      { label: '国内',         rss: 'https://news.yahoo.co.jp/rss/topics/domestic.xml' },
-      { label: '国際',         rss: 'https://news.yahoo.co.jp/rss/topics/world.xml' },
-      { label: 'ビジネス',     rss: 'https://news.yahoo.co.jp/rss/topics/business.xml' },
-      { label: 'テクノロジー', rss: 'https://news.yahoo.co.jp/rss/topics/it.xml' },
-      { label: 'スポーツ',     rss: 'https://news.yahoo.co.jp/rss/topics/sports.xml' },
-      { label: 'エンタメ',     rss: 'https://news.yahoo.co.jp/rss/topics/entertainment.xml' },
+      { label: 'すべて', rss: 'https://www3.nhk.or.jp/news/easy/k10_news_easy.rss' },
     ]
   },
   nhk: {
@@ -349,7 +343,7 @@ function splitText(text, max) {
 // ══════════════════════════════
 // STATE
 // ══════════════════════════════
-let currentSrc = 'yahoo';
+let currentSrc = 'easy';
 let currentCat = 0;
 let articles = [];
 const wordCache = {};
@@ -358,7 +352,7 @@ const wordCache = {};
 // INIT
 // ══════════════════════════════
 window.onload = () => {
-  buildCatTabs('yahoo');
+  buildCatTabs('easy');
   loadRSS();
 };
 
@@ -467,56 +461,22 @@ async function openArticle(idx) {
   window.scrollTo(0,0);
 
   try {
-    // まずYahooページを取得して外部記事リンクを探す
+    // 記事ページを取得
     const res = await fetchWithProxy(a.link);
     const html = await res.text();
     const doc = new DOMParser().parseFromString(html, 'text/html');
 
-    // 「記事全文を読む」などの外部リンクを探す
-    let articleUrl = a.link;
-    const externalSelectors = [
-      'a[href*="pickup"]',
-      '.article_body a[href]',
-      'a.viewFullText',
-      'a[data-ylk*="full"]',
-    ];
-    // canonical または og:url で元サイトURLを取得
-    const canonical = doc.querySelector('link[rel="canonical"]')?.href
-      || doc.querySelector('meta[property="og:url"]')?.content;
-    if (canonical && !canonical.includes('yahoo.co.jp')) {
-      articleUrl = canonical;
-    } else {
-      // Yahooページ内の外部リンクを探す（yahoo.co.jp以外）
-      const allLinks = Array.from(doc.querySelectorAll('a[href]'));
-      const extLink = allLinks.find(a => {
-        const h = a.href;
-        return h && !h.includes('yahoo.co.jp') && !h.includes('javascript')
-          && (h.startsWith('http')) && a.textContent.match(/全文|続き|元記事|詳細|read/i);
-      });
-      if (extLink) articleUrl = extLink.href;
-    }
-
-    // 外部記事URLが見つかった場合は再フェッチ
-    let finalDoc = doc;
-    if (articleUrl !== a.link) {
-      try {
-        const res2 = await fetchWithProxy(articleUrl);
-        const html2 = await res2.text();
-        finalDoc = new DOMParser().parseFromString(html2, 'text/html');
-      } catch(e) { /* 失敗したら元のdocを使う */ }
-    }
-
     let paras = [];
+    // NHK Easy: 本文は #news_textbody または .article-body
     const selectors = [
-      'article p', '.article_body p', '.articleBody p',
-      '[class*="article-body"] p', '[class*="article_body"] p',
-      '[class*="articleBody"] p', '[class*="content"] p',
-      '.body p', '#article p', 'main p', '.paragraph p', 'p'
+      '#news_textbody p', '#news_textbody',
+      '.article-body p', '.article-main p',
+      'article p', '.content p', 'main p', 'p'
     ];
     for (const sel of selectors) {
-      const els = finalDoc.querySelectorAll(sel);
+      const els = doc.querySelectorAll(sel);
       const texts = Array.from(els).map(el => el.textContent.trim())
-        .filter(t => t.length > 20 && !t.match(/続きを読む|広告|cookie|Cookie|javascript|JavaScript|copyright|Copyright|All Rights/i));
+        .filter(t => t.length > 10 && !t.match(/続きを読む|広告|cookie|Cookie|javascript|JavaScript|copyright|Copyright|All Rights/i));
       if (texts.length > 0) { paras = texts.slice(0, 25); break; }
     }
     if (paras.length === 0 && a.description) paras = [a.description];
