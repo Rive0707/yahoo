@@ -17,7 +17,7 @@
   --muted: #7b82a0;
   --border: #2a2f45;
   --warn: #fbbf24;
-  --easy: #00a050;
+  --yahoo: #ff0033;
   --nhk: #1a6fc4;
 }
 
@@ -59,7 +59,7 @@ header {
 .src-btn .src-dot {
   width: 7px; height: 7px; border-radius: 50%;
 }
-.src-btn[data-src="easy"] .src-dot { background: var(--easy); }
+.src-btn[data-src="yahoo"] .src-dot { background: var(--yahoo); }
 .src-btn[data-src="nhk"] .src-dot { background: var(--nhk); }
 .src-btn.active { color: var(--text); border-bottom-color: var(--accent); }
 
@@ -202,8 +202,8 @@ header {
 
 <!-- SOURCE TABS -->
 <div class="source-tabs" id="sourceTabs">
-  <button class="src-btn active" data-src="easy" onclick="switchSource('easy')">
-    <span class="src-dot"></span> NHK Web Easy
+  <button class="src-btn active" data-src="yahoo" onclick="switchSource('yahoo')">
+    <span class="src-dot"></span> Yahoo! ニュース
   </button>
   <button class="src-btn" data-src="nhk" onclick="switchSource('nhk')">
     <span class="src-dot"></span> NHK ニュース
@@ -257,11 +257,18 @@ header {
 // DATA SOURCES
 // ══════════════════════════════
 const SOURCES = {
-  easy: {
-    name: 'NHK Web Easy',
-    color: '#00a050',
+  yahoo: {
+    name: 'Yahoo! ニュース',
+    color: '#ff0033',
     categories: [
-      { label: 'すべて', easyDate: true },
+      { label: 'トップ',       rss: 'https://news.livedoor.com/topics/rss/top.xml' },
+      { label: '国内',         rss: 'https://news.livedoor.com/topics/rss/dom.xml' },
+      { label: '国際',         rss: 'https://news.livedoor.com/topics/rss/int.xml' },
+      { label: 'エンタメ',     rss: 'https://news.livedoor.com/topics/rss/ent.xml' },
+      { label: 'スポーツ',     rss: 'https://news.livedoor.com/topics/rss/spo.xml' },
+      { label: 'IT',           rss: 'https://news.livedoor.com/topics/rss/it.xml' },
+      { label: '経済',         rss: 'https://news.livedoor.com/topics/rss/eco.xml' },
+      { label: '社会',         rss: 'https://news.livedoor.com/topics/rss/soc.xml' },
     ]
   },
   nhk: {
@@ -343,7 +350,7 @@ function splitText(text, max) {
 // ══════════════════════════════
 // STATE
 // ══════════════════════════════
-let currentSrc = 'easy';
+let currentSrc = 'yahoo';
 let currentCat = 0;
 let articles = [];
 const wordCache = {};
@@ -352,7 +359,7 @@ const wordCache = {};
 // INIT
 // ══════════════════════════════
 window.onload = () => {
-  buildCatTabs('easy');
+  buildCatTabs('yahoo');
   loadRSS();
 };
 
@@ -397,41 +404,8 @@ async function loadRSS() {
   articles = [];
   const cat = SOURCES[currentSrc].categories[currentCat];
   try {
-    if (cat.easyDate) {
-      // NHK Web Easy: 日付JSONから記事取得（過去3日分を試す）
-      const allItems = [];
-      const today = new Date();
-      for (let d = 0; d < 4; d++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - d);
-        const ymd = date.toISOString().slice(0,10).replace(/-/g,'');
-        const jsonUrl = `https://www3.nhk.or.jp/news/easy/${ymd}/${ymd}.json`;
-        try {
-          const res = await fetchWithProxy(jsonUrl);
-          const text = await res.text();
-          if (text.trim()[0] !== '[' && text.trim()[0] !== '{') continue;
-          const data = JSON.parse(text);
-          const arr = Array.isArray(data) ? data : Object.values(data).flat();
-          arr.forEach(item => {
-            if (item.news_id && item.title) {
-              allItems.push({
-                titleJp: item.title,
-                link: `https://www3.nhk.or.jp/news/easy/${item.news_id}/${item.news_id}.html`,
-                pubDate: item.news_prearranged_time || '',
-                description: item.title,
-              });
-            }
-          });
-        } catch(e) { /* その日のJSONがなければスキップ */ }
-      }
-
-      if (allItems.length === 0) throw new Error('NHK Easy の記事JSONが取得できませんでした');
-
-      list.innerHTML = '<div class="loading"><div class="spinner"></div>タイトルを英訳中...</div>';
-      articles = await Promise.all(allItems.slice(0, 30).map(async (a, i) => ({
-        ...a, titleEn: await translate(a.titleJp), index: i
-      })));
-      renderList();
+    if (false) {
+      // (unused)
     } else {
       // RSS形式
       const res = await fetchWithProxy(cat.rss);
@@ -501,21 +475,51 @@ async function openArticle(idx) {
     const html = await res.text();
     const doc = new DOMParser().parseFromString(html, 'text/html');
 
-    let paras = [];
-    // NHK Easy: 本文は #news_textbody
-    const selectors = [
-      '#news_textbody p', '#news_textbody',
-      '.article-body p', '.article-main p',
-      '#main p', 'article p', '.content p', 'main p', 'p'
-    ];
-    for (const sel of selectors) {
-      const els = doc.querySelectorAll(sel);
-      const texts = Array.from(els).map(el => el.textContent.trim())
-        .filter(t => t.length > 10 && !t.match(/続きを読む|広告|cookie|Cookie|javascript|JavaScript|copyright|Copyright|All Rights/i));
-      if (texts.length > 0) { paras = texts.slice(0, 25); break; }
+    // livedoor記事の場合、元記事URLにリダイレクトされてる可能性あり
+    // og:urlから実際のURLを確認
+    const ogUrl = doc.querySelector('meta[property="og:url"]')?.content;
+    let finalDoc = doc;
+    if (ogUrl && ogUrl !== a.link && !ogUrl.includes('livedoor.com')) {
+      try {
+        const res2 = await fetchWithProxy(ogUrl);
+        const html2 = await res2.text();
+        finalDoc = new DOMParser().parseFromString(html2, 'text/html');
+      } catch(e) { /* フォールバック */ }
     }
-    if (paras.length === 0 && a.description) paras = [a.description];
-    if (paras.length === 0) throw new Error('記事本文が取得できませんでした');
+
+    let paras = [];
+    const NOISE = /続きを読む|全文を読む|広告|cookie|Cookie|javascript|JavaScript|copyright|Copyright|All Rights|プライバシー|利用規約|無断転載|RSS|購読/i;
+
+    // livedoor専用セレクタ → 汎用の順で試す
+    const selectors = [
+      '.article-body-inner p',
+      '.articleBody p',
+      '#articleBody p',
+      '.news-article p',
+      '.article p',
+      'article p',
+      '.entry-content p',
+      '.post-content p',
+      '.content-body p',
+      '.body p',
+      '#main p',
+      'main p',
+      'p'
+    ];
+
+    for (const sel of selectors) {
+      const els = finalDoc.querySelectorAll(sel);
+      const texts = Array.from(els)
+        .map(el => el.textContent.trim())
+        .filter(t => t.length > 15 && !t.match(NOISE));
+      if (texts.length >= 2) { paras = texts.slice(0, 25); break; }
+    }
+
+    // パラグラフが取れない場合はRSSのdescriptionを使う
+    if (paras.length === 0 && a.description && a.description.length > 20) {
+      paras = [a.description];
+    }
+    if (paras.length === 0) throw new Error('記事本文が取得できませんでした（メディアサイトがブロックしている可能性があります）');
 
     showStatus(`翻訳中 0/${paras.length}`);
     const translated = [];
