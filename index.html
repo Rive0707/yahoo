@@ -261,7 +261,7 @@ const SOURCES = {
     name: 'NHK Web Easy',
     color: '#00a050',
     categories: [
-      { label: 'すべて', rss: 'https://www3.nhk.or.jp/news/easy/k10_news_easy.rss' },
+      { label: 'すべて', json: 'https://www3.nhk.or.jp/news/easy/news-list.json' },
     ]
   },
   nhk: {
@@ -395,33 +395,53 @@ async function loadRSS() {
   const list = document.getElementById('newsList');
   list.innerHTML = '<div class="loading"><div class="spinner"></div>読み込み中...</div>';
   articles = [];
-
   const cat = SOURCES[currentSrc].categories[currentCat];
   try {
-    list.innerHTML = '<div class="loading"><div class="spinner"></div>プロキシ接続中... (allorigins)</div>';
-    const res = await fetchWithProxy(cat.rss);
-    list.innerHTML = '<div class="loading"><div class="spinner"></div>RSS解析中...</div>';
-    const text = await res.text();
-    const xml = new DOMParser().parseFromString(text, 'text/xml');
-    const items = xml.querySelectorAll('item');
-    if (items.length === 0) throw new Error('記事が0件でした。RSSの形式が変わった可能性があります。');
-    const raw = Array.from(items).slice(0, 30).map(item => ({
-      titleJp: item.querySelector('title')?.textContent?.replace(/<!\[CDATA\[|\]\]>/g,'').trim() || '',
-      link: item.querySelector('link')?.textContent?.trim() || '',
-      pubDate: item.querySelector('pubDate')?.textContent || '',
-      description: item.querySelector('description')?.textContent?.replace(/<[^>]+>/g,'').trim() || '',
-    }));
-
-    list.innerHTML = '<div class="loading"><div class="spinner"></div>タイトルを英訳中...</div>';
-    articles = await Promise.all(raw.map(async (a, i) => ({
-      ...a, titleEn: await translate(a.titleJp), index: i
-    })));
-    renderList();
+    if (cat.json) {
+      // NHK Web Easy: JSON形式
+      const res = await fetchWithProxy(cat.json);
+      const text = await res.text();
+      const data = JSON.parse(text);
+      const raw = [];
+      Object.values(data).forEach(dateArr => {
+        if (Array.isArray(dateArr)) dateArr.forEach(item => raw.push(item));
+      });
+      const items = raw.slice(0, 30).map(item => ({
+        titleJp: item.title || '',
+        link: 'https://www3.nhk.or.jp/news/easy/' + item.news_id + '/' + item.news_id + '.html',
+        pubDate: item.news_prearranged_time || '',
+        description: item.title || '',
+      }));
+      list.innerHTML = '<div class="loading"><div class="spinner"></div>タイトルを英訳中...</div>';
+      articles = await Promise.all(items.map(async (a, i) => ({
+        ...a, titleEn: await translate(a.titleJp), index: i
+      })));
+      renderList();
+    } else {
+      // RSS形式
+      const res = await fetchWithProxy(cat.rss);
+      const text = await res.text();
+      const xml = new DOMParser().parseFromString(text, 'text/xml');
+      const items = xml.querySelectorAll('item');
+      if (items.length === 0) throw new Error('記事が0件でした');
+      const raw = Array.from(items).slice(0, 30).map(item => ({
+        titleJp: item.querySelector('title')?.textContent?.replace(/<!\[CDATA\[|\]\]>/g,'').trim() || '',
+        link: item.querySelector('link')?.textContent?.trim() || '',
+        pubDate: item.querySelector('pubDate')?.textContent || '',
+        description: item.querySelector('description')?.textContent?.replace(/<[^>]+>/g,'').trim() || '',
+      }));
+      list.innerHTML = '<div class="loading"><div class="spinner"></div>タイトルを英訳中...</div>';
+      articles = await Promise.all(raw.map(async (a, i) => ({
+        ...a, titleEn: await translate(a.titleJp), index: i
+      })));
+      renderList();
+    }
   } catch(e) {
     list.innerHTML = `<div class="notice"><strong>⚠️ 読み込み失敗</strong><br>${e.message}<br>
       <button class="retry-btn" onclick="loadRSS()">🔄 再試行</button></div>`;
   }
 }
+
 
 function renderList() {
   const list = document.getElementById('newsList');
@@ -467,11 +487,11 @@ async function openArticle(idx) {
     const doc = new DOMParser().parseFromString(html, 'text/html');
 
     let paras = [];
-    // NHK Easy: 本文は #news_textbody または .article-body
+    // NHK Easy: 本文は #news_textbody
     const selectors = [
       '#news_textbody p', '#news_textbody',
       '.article-body p', '.article-main p',
-      'article p', '.content p', 'main p', 'p'
+      '#main p', 'article p', '.content p', 'main p', 'p'
     ];
     for (const sel of selectors) {
       const els = doc.querySelectorAll(sel);
