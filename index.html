@@ -469,48 +469,27 @@ async function openArticle(idx) {
   document.getElementById('artDate').textContent = a.pubDate ? new Date(a.pubDate).toLocaleString('ja-JP') : '';
   const src = SOURCES[currentSrc];
   document.getElementById('artSource').innerHTML = `<span class="art-source-dot" style="background:${src.color}"></span>${src.name}`;
-  document.getElementById('articleBody').innerHTML = '<div class="loading"><div class="spinner"></div>記事取得・翻訳中...</div>';
+  document.getElementById('articleBody').innerHTML = '<div class="loading"><div class="spinner"></div>翻訳中...</div>';
   window.scrollTo(0,0);
 
   try {
-    // livedoor RSSのdescriptionを使う（本文フェッチは文字化けの原因になるため）
+    // RSSのdescriptionのみ使用（本文フェッチは文字化けするため廃止）
     let paras = [];
 
     if (a.description && a.description.length > 20) {
-      // descriptionを句点・改行で段落分割
       paras = a.description
-        .split(/。\s*|\n+/)
+        .split(/(?<=。)\s*|(?<=…)\s*|\n+/)
         .map(s => s.trim())
-        .filter(s => s.length > 10)
-        .map(s => s.endsWith('。') ? s : s + '。');
+        .filter(s => s.length > 10 && /[ぁ-んァ-ン一-龥]/.test(s))
+        .map(s => s.endsWith('。') || s.endsWith('…') ? s : s + '。');
     }
 
-    // descriptionが短い場合はページ本文を試す
-    if (paras.length < 2) {
-      try {
-        const res = await fetchWithProxy(a.link);
-        const html = await res.text();
-        // バイナリ・文字化けチェック
-        if (html.includes('<!DOCTYPE') || html.includes('<html')) {
-          const doc = new DOMParser().parseFromString(html, 'text/html');
-          const NOISE = /続きを読む|全文を読む|広告|cookie|Cookie|javascript|Copyright|All Rights|プライバシー|利用規約|無断転載/i;
-          const selectors = [
-            '.article-body-inner p', '.articleBody p', '#articleBody p',
-            '.news-article p', '.article p', 'article p',
-            '.entry-content p', '.post-content p', '.body p', 'main p'
-          ];
-          for (const sel of selectors) {
-            const els = doc.querySelectorAll(sel);
-            const texts = Array.from(els)
-              .map(el => el.textContent.trim())
-              .filter(t => t.length > 15 && !t.match(NOISE) && /[ぁ-んァ-ン一-龥]/.test(t));
-            if (texts.length >= 2) { paras = texts.slice(0, 20); break; }
-          }
-        }
-      } catch(e) { /* フォールバック */ }
+    // 分割できなかった場合はそのまま1段落
+    if (paras.length === 0 && a.description) {
+      paras = [a.description];
     }
 
-    if (paras.length === 0) throw new Error('記事本文が取得できませんでした');
+    if (paras.length === 0) throw new Error('概要文が取得できませんでした');
 
     showStatus(`翻訳中 0/${paras.length}`);
     const translated = [];
