@@ -255,30 +255,31 @@ async function fetchProxy(url) {
   throw new Error('Connection failed. Please retry.');
 }
 
-const MYMEMORY = 'https://api.mymemory.translated.net/get';
+const GROQ_KEY = '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';
 const tCache = {};
+
 async function translate(text, from='en', to='ja') {
   const key = `${from}|${to}|${text}`;
   if (tCache[key]) return tCache[key];
-  if (text.length > 480) {
-    const parts = splitText(text, 480);
-    const res = await Promise.all(parts.map(p => translate(p, from, to)));
-    return tCache[key] = res.join(' ');
-  }
   try {
-    const r = await fetch(`${MYMEMORY}?q=${encodeURIComponent(text)}&langpair=${from}|${to}`);
-    const d = await r.json();
-    return tCache[key] = d?.responseData?.translatedText || text;
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 512,
+        messages: [{
+          role: 'user',
+          content: from === 'en'
+            ? `Translate the following English text to Japanese. Output only the translation, nothing else:\n\n${text}`
+            : `Translate the following Japanese text to English. Output only the translation, nothing else:\n\n${text}`
+        }]
+      })
+    });
+    const d = await res.json();
+    const result = d.choices?.[0]?.message?.content?.trim() || text;
+    return tCache[key] = result;
   } catch { return tCache[key] = text; }
-}
-function splitText(text, max) {
-  const chunks = []; let s = 0;
-  while (s < text.length) {
-    let e = Math.min(s + max, text.length);
-    if (e < text.length) { const b = text.lastIndexOf(' ', e); if (b > s) e = b + 1; }
-    chunks.push(text.slice(s, e)); s = e;
-  }
-  return chunks;
 }
 
 let currentSrc = 'sora', currentCat = 0, articles = [];
@@ -347,11 +348,19 @@ function renderList() {
       <div class="news-num">${String(i+1).padStart(2,'0')}</div>
       <div class="news-content">
         <div class="news-title">${esc(a.title)}</div>
+        <div class="news-title-jp" id="title-jp-${i}" style="font-family:'Noto Sans JP',sans-serif;font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">訳中...</div>
         <div class="news-meta">📅 ${date}</div>
       </div>
       <div class="news-arrow">›</div>`;
     card.onclick = () => openArticle(i);
     list.appendChild(card);
+
+    // バックグラウンドでタイトル和訳
+    translate(a.title).then(jp => {
+      a.titleJp = jp;
+      const el = document.getElementById(`title-jp-${i}`);
+      if (el) el.textContent = jp;
+    });
   });
 }
 
@@ -363,6 +372,16 @@ async function openArticle(idx) {
   document.getElementById('jpToggle').checked = false;
   document.getElementById('artTitle').textContent = a.title;
   document.getElementById('artDate').textContent = a.pubDate ? new Date(a.pubDate).toLocaleString('en-US') : '';
+  // 記事ヘッダーに和訳タイトル表示
+  let artTitleJp = document.getElementById('artTitleJp');
+  if (!artTitleJp) {
+    artTitleJp = document.createElement('div');
+    artTitleJp.id = 'artTitleJp';
+    artTitleJp.style.cssText = 'font-family:"Noto Sans JP",sans-serif;font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6;';
+    document.getElementById('artTitle').after(artTitleJp);
+  }
+  artTitleJp.textContent = a.titleJp || '訳中...';
+  if (!a.titleJp) translate(a.title).then(jp => { a.titleJp = jp; artTitleJp.textContent = jp; });
   const src = SOURCES[currentSrc];
   document.getElementById('artDot').style.background = src.color;
   document.getElementById('artSrc').textContent = src.name;
