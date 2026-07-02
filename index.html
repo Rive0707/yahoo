@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JP News English Reader</title>
+<title>JP News in English</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400&display=swap');
 
 :root {
   --bg: #0f1117;
@@ -17,96 +17,74 @@
   --muted: #7b82a0;
   --border: #2a2f45;
   --warn: #fbbf24;
-  --yahoo: #ff0033;
-  --nhk: #1a6fc4;
+  --sora: #ff6b35;
+  --jt: #2196f3;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+body { font-family: "Inter", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-/* ── HEADER ── */
 header {
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
-  position: sticky; top: 0; z-index: 100;
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
+  background: var(--surface); position: sticky; top: 0; z-index: 100;
   display: flex; align-items: center; gap: 10px;
 }
-.logo { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; }
+.logo { font-size: 16px; font-weight: 600; }
 .logo span { color: var(--accent); }
 #backBtn {
   display: none; margin-left: auto;
   background: var(--surface2); color: var(--muted);
   border: 1px solid var(--border); padding: 6px 14px;
   border-radius: 8px; cursor: pointer; font-size: 13px;
-  font-family: 'Inter', sans-serif; transition: all .2s;
+  font-family: "Inter", sans-serif; transition: all .2s;
 }
 #backBtn:hover { color: var(--text); border-color: var(--accent); }
 
-/* ── SOURCE TABS ── */
-.source-tabs {
-  display: flex; border-bottom: 1px solid var(--border);
-  background: var(--surface);
-}
+.source-tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--surface); }
 .src-btn {
   flex: 1; padding: 12px 0; font-size: 13px; font-weight: 500;
-  font-family: 'Inter', sans-serif;
-  background: none; border: none; color: var(--muted);
-  cursor: pointer; transition: all .2s;
+  font-family: "Inter", sans-serif; background: none; border: none;
+  color: var(--muted); cursor: pointer; transition: all .2s;
   border-bottom: 2px solid transparent;
   display: flex; align-items: center; justify-content: center; gap: 6px;
 }
-.src-btn .src-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-}
-.src-btn[data-src="yahoo"] .src-dot { background: var(--yahoo); }
-.src-btn[data-src="nhk"] .src-dot { background: var(--nhk); }
+.src-dot { width: 7px; height: 7px; border-radius: 50%; }
+.src-btn[data-src="sora"] .src-dot { background: var(--sora); }
+.src-btn[data-src="jt"] .src-dot { background: var(--jt); }
 .src-btn.active { color: var(--text); border-bottom-color: var(--accent); }
 
-/* ── CATEGORY TABS ── */
 .cat-scroll {
-  overflow-x: auto; padding: 12px 16px; gap: 8px;
+  overflow-x: auto; padding: 10px 14px; gap: 7px;
   display: flex; background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  scrollbar-width: none;
+  border-bottom: 1px solid var(--border); scrollbar-width: none;
 }
 .cat-scroll::-webkit-scrollbar { display: none; }
 .cat-btn {
   white-space: nowrap; background: var(--surface);
   border: 1px solid var(--border); color: var(--muted);
-  padding: 6px 14px; border-radius: 20px; cursor: pointer;
-  font-size: 12px; font-family: 'Inter', sans-serif; transition: all .2s;
-  flex-shrink: 0;
+  padding: 5px 13px; border-radius: 20px; cursor: pointer;
+  font-size: 12px; font-family: "Inter", sans-serif; transition: all .2s; flex-shrink: 0;
 }
-.cat-btn.active, .cat-btn:hover {
-  background: var(--accent); color: #fff; border-color: var(--accent);
-}
+.cat-btn.active, .cat-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-/* ── CONTAINER ── */
-.container { max-width: 800px; margin: 0 auto; padding: 20px 16px; }
+.container { max-width: 800px; margin: 0 auto; padding: 18px 14px; }
 
-/* ── NEWS CARDS ── */
 #newsList { display: flex; flex-direction: column; gap: 10px; }
 .news-card {
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: 12px; padding: 16px 18px;
+  border-radius: 12px; padding: 15px 16px;
   cursor: pointer; transition: all .2s;
-  display: flex; gap: 14px; align-items: flex-start;
+  display: flex; gap: 12px; align-items: flex-start;
 }
-.news-card:hover {
-  border-color: var(--accent); background: var(--surface2);
-  transform: translateY(-1px);
-}
-.news-num { font-size: 11px; color: var(--accent); font-weight: 600; min-width: 22px; padding-top: 2px; }
+.news-card:hover { border-color: var(--accent); background: var(--surface2); transform: translateY(-1px); }
+.news-num { font-size: 11px; color: var(--accent); font-weight: 600; min-width: 20px; padding-top: 2px; }
 .news-content { flex: 1; }
-.news-title-jp { font-family: 'Noto Sans JP', sans-serif; font-size: 12px; color: var(--muted); margin-bottom: 5px; line-height: 1.5; }
-.news-title-en { font-size: 15px; font-weight: 500; line-height: 1.5; }
-.news-title-en.translating { color: var(--muted); font-style: italic; font-size: 13px; }
+.news-title { font-size: 15px; font-weight: 500; line-height: 1.5; color: var(--text); }
+.news-title.loading-t { color: var(--muted); font-style: italic; font-size: 13px; }
 .news-meta { margin-top: 6px; font-size: 11px; color: var(--muted); }
 .news-arrow { color: var(--muted); font-size: 18px; padding-top: 2px; transition: transform .2s; }
 .news-card:hover .news-arrow { transform: translateX(4px); color: var(--accent); }
 
-/* ── LOADING ── */
 .loading { text-align: center; padding: 40px; color: var(--muted); }
 .spinner {
   width: 32px; height: 32px; border: 3px solid var(--border);
@@ -115,22 +93,19 @@ header {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── ARTICLE ── */
 #articleView { display: none; }
-.art-header { margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
-.art-title-en { font-size: 22px; font-weight: 600; line-height: 1.4; margin-bottom: 8px; letter-spacing: -0.3px; }
-.art-title-jp { font-family: 'Noto Sans JP', sans-serif; font-size: 13px; color: var(--muted); line-height: 1.6; }
-.art-date { font-size: 11px; color: var(--muted); margin-top: 6px; }
-.art-source { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); margin-top: 6px; }
-.art-source-dot { width: 6px; height: 6px; border-radius: 50%; }
+.art-header { margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.art-title { font-size: 22px; font-weight: 600; line-height: 1.4; margin-bottom: 8px; }
+.art-meta { font-size: 11px; color: var(--muted); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+.src-badge { display: inline-flex; align-items: center; gap: 4px; }
+.src-badge-dot { width: 6px; height: 6px; border-radius: 50%; }
 
-/* ── TRANSLATION TOGGLE BAR ── */
 .jp-toggle-bar {
   display: flex; align-items: center; gap: 12px;
   background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 10px; padding: 11px 15px; margin-bottom: 20px;
+  border-radius: 10px; padding: 11px 15px; margin-bottom: 18px;
 }
-.jp-toggle-bar label:first-child { font-size: 13px; color: var(--muted); flex: 1; }
+.jp-toggle-bar span { font-size: 13px; color: var(--muted); flex: 1; }
 .toggle { position: relative; width: 40px; height: 22px; cursor: pointer; }
 .toggle input { display: none; }
 .t-track { width: 40px; height: 22px; background: var(--border); border-radius: 11px; display: block; transition: background .2s; }
@@ -138,25 +113,25 @@ header {
 .t-thumb { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: left .2s; pointer-events: none; }
 .toggle input:checked ~ .t-thumb { left: 21px; }
 
-/* ── ARTICLE BODY ── */
+.hint { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+.hint strong { color: var(--accent); }
+
 #articleBody { line-height: 1.9; }
-.para-block { margin-bottom: 22px; }
+.para-block { margin-bottom: 20px; }
 .en-para { font-size: 15px; line-height: 1.9; color: var(--text); }
 .jp-para {
-  font-family: 'Noto Sans JP', sans-serif; font-size: 12px;
-  color: var(--muted); line-height: 1.8; margin-top: 7px;
-  padding: 9px 13px; background: var(--surface2);
+  font-family: "Noto Sans JP", sans-serif; font-size: 12px;
+  color: var(--muted); line-height: 1.8; margin-top: 6px;
+  padding: 8px 12px; background: var(--surface2);
   border-left: 3px solid var(--accent2); border-radius: 0 8px 8px 0;
   display: none;
 }
 .jp-para.visible { display: block; }
 
-/* ── WORD ── */
 .word { cursor: pointer; border-bottom: 1px dashed transparent; transition: all .15s; border-radius: 2px; padding: 0 1px; }
 .word:hover { background: rgba(108,142,255,.15); border-bottom-color: var(--accent); color: #fff; }
 .word.looked-up { border-bottom-color: var(--accent2); color: var(--accent2); }
 
-/* ── TOOLTIP ── */
 #tooltip {
   position: fixed; background: #1e2235; border: 1px solid var(--accent);
   border-radius: 10px; padding: 10px 14px; font-size: 13px;
@@ -164,26 +139,20 @@ header {
   box-shadow: 0 8px 32px rgba(0,0,0,.4); pointer-events: none;
 }
 #tt-word { font-weight: 600; color: var(--text); margin-bottom: 3px; }
-#tt-jp { color: var(--accent2); font-family: 'Noto Sans JP', sans-serif; font-size: 14px; }
+#tt-jp { color: var(--accent2); font-family: "Noto Sans JP", sans-serif; font-size: 14px; }
 
-/* ── NOTICE ── */
 .notice {
   background: var(--surface2); border: 1px solid var(--border);
   border-radius: 10px; padding: 14px 18px; font-size: 13px;
-  color: var(--muted); margin-bottom: 18px; line-height: 1.6;
+  color: var(--muted); margin-bottom: 16px; line-height: 1.6;
 }
 .notice strong { color: var(--warn); }
 .retry-btn {
   background: var(--accent); color: #fff; border: none;
   padding: 8px 18px; border-radius: 8px; cursor: pointer;
-  font-size: 13px; margin-top: 10px; font-family: 'Inter', sans-serif;
+  font-size: 13px; margin-top: 10px; font-family: "Inter", sans-serif;
 }
 
-/* ── HINT ── */
-.hint { font-size: 12px; color: var(--muted); margin-bottom: 18px; }
-.hint strong { color: var(--accent); }
-
-/* ── STATUS ── */
 #statusBar {
   position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
   background: var(--surface2); border: 1px solid var(--border);
@@ -196,135 +165,105 @@ header {
 <body>
 
 <header>
-  <div class="logo">JP News <span>EN</span> Reader</div>
-  <button id="backBtn" onclick="showList()">← 一覧</button>
+  <div class="logo">JP <span>EN</span> News</div>
+  <button id="backBtn" onclick="showList()">← Back</button>
 </header>
 
-<!-- SOURCE TABS -->
-<div class="source-tabs" id="sourceTabs">
-  <button class="src-btn active" data-src="yahoo" onclick="switchSource('yahoo')">
-    <span class="src-dot"></span> Yahoo! ニュース
+<div class="source-tabs">
+  <button class="src-btn active" data-src="sora" onclick="switchSource('sora')">
+    <span class="src-dot"></span> SoraNews24
   </button>
-  <button class="src-btn" data-src="nhk" onclick="switchSource('nhk')">
-    <span class="src-dot"></span> NHK ニュース
+  <button class="src-btn" data-src="jt" onclick="switchSource('jt')">
+    <span class="src-dot"></span> Japan Today
   </button>
 </div>
 
-<!-- CATEGORY TABS -->
 <div class="cat-scroll" id="catTabs"></div>
 
 <div class="container">
-  <!-- LIST VIEW -->
   <div id="listView">
-    <div id="newsList">
-      <div class="loading"><div class="spinner"></div>読み込み中...</div>
-    </div>
+    <div id="newsList"><div class="loading"><div class="spinner"></div>Loading...</div></div>
   </div>
 
-  <!-- ARTICLE VIEW -->
   <div id="articleView">
     <div class="art-header">
-      <div class="art-title-en" id="artTitleEn"></div>
-      <div class="art-title-jp" id="artTitleJp"></div>
-      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-        <div class="art-date" id="artDate"></div>
-        <div class="art-source" id="artSource"></div>
+      <div class="art-title" id="artTitle"></div>
+      <div class="art-meta">
+        <span id="artDate"></span>
+        <span class="src-badge"><span class="src-badge-dot" id="artDot"></span><span id="artSrc"></span></span>
       </div>
     </div>
-
     <div class="jp-toggle-bar">
-      <label>和訳を段落ごとに表示</label>
+      <span>Show Japanese translation</span>
       <label class="toggle">
         <input type="checkbox" id="jpToggle" onchange="toggleJpAll()">
-        <span class="t-track"></span>
-        <span class="t-thumb"></span>
+        <span class="t-track"></span><span class="t-thumb"></span>
       </label>
     </div>
-
-    <div class="hint">💡 <strong>単語をタップ</strong>すると日本語訳が出ます</div>
+    <div class="hint">💡 <strong>Tap any word</strong> for Japanese translation</div>
     <div id="articleBody"></div>
   </div>
 </div>
 
-<div id="tooltip">
-  <div id="tt-word"></div>
-  <div id="tt-jp"></div>
-</div>
+<div id="tooltip"><div id="tt-word"></div><div id="tt-jp"></div></div>
 <div id="statusBar"></div>
 
 <script>
-// ══════════════════════════════
-// DATA SOURCES
-// ══════════════════════════════
 const SOURCES = {
-  yahoo: {
-    name: 'Yahoo! ニュース',
-    color: '#ff0033',
+  sora: {
+    name: 'SoraNews24', color: '#ff6b35',
     categories: [
-      { label: 'トップ',       rss: 'https://news.yahoo.co.jp/rss/topics/top-picks.xml' },
-      { label: '国内',         rss: 'https://news.yahoo.co.jp/rss/topics/domestic.xml' },
-      { label: '国際',         rss: 'https://news.yahoo.co.jp/rss/topics/world.xml' },
-      { label: 'ビジネス',     rss: 'https://news.yahoo.co.jp/rss/topics/business.xml' },
-      { label: 'テクノロジー', rss: 'https://news.yahoo.co.jp/rss/topics/it.xml' },
-      { label: 'スポーツ',     rss: 'https://news.yahoo.co.jp/rss/topics/sports.xml' },
-      { label: 'エンタメ',     rss: 'https://news.yahoo.co.jp/rss/topics/entertainment.xml' },
+      { label: 'All',          rss: 'https://soranews24.com/feed/' },
+      { label: 'Entertainment',rss: 'https://soranews24.com/category/entertainment/feed/' },
+      { label: 'Food',         rss: 'https://soranews24.com/category/food/feed/' },
+      { label: 'Travel',       rss: 'https://soranews24.com/category/travel/feed/' },
+      { label: 'Tech',         rss: 'https://soranews24.com/category/technology/feed/' },
+      { label: 'Lifestyle',    rss: 'https://soranews24.com/category/lifestyle/feed/' },
     ]
   },
-  nhk: {
-    name: 'NHK ニュース',
-    color: '#1a6fc4',
+  jt: {
+    name: 'Japan Today', color: '#2196f3',
     categories: [
-      { label: 'トップ',   rss: 'https://www3.nhk.or.jp/rss/news/cat0.xml' },
-      { label: '社会',     rss: 'https://www3.nhk.or.jp/rss/news/cat1.xml' },
-      { label: '科学',     rss: 'https://www3.nhk.or.jp/rss/news/cat3.xml' },
-      { label: '政治',     rss: 'https://www3.nhk.or.jp/rss/news/cat4.xml' },
-      { label: '経済',     rss: 'https://www3.nhk.or.jp/rss/news/cat5.xml' },
-      { label: '国際',     rss: 'https://www3.nhk.or.jp/rss/news/cat6.xml' },
-      { label: 'スポーツ', rss: 'https://www3.nhk.or.jp/rss/news/cat7.xml' },
-      { label: '文化',     rss: 'https://www3.nhk.or.jp/rss/news/cat2.xml' },
+      { label: 'All',      rss: 'https://japantoday.com/feed' },
+      { label: 'News',     rss: 'https://japantoday.com/category/national/feed' },
+      { label: 'Sports',   rss: 'https://japantoday.com/category/sports/feed' },
+      { label: 'Tech',     rss: 'https://japantoday.com/category/tech/feed' },
+      { label: 'Entertainment', rss: 'https://japantoday.com/category/entertainment/feed' },
+      { label: 'World',    rss: 'https://japantoday.com/category/world/feed' },
     ]
   }
 };
 
-// ══════════════════════════════
-// PROXY
-// ══════════════════════════════
 const PROXIES = [
   'https://corsproxy.io/?',
   'https://api.allorigins.win/raw?url=',
   'https://thingproxy.freeboard.io/fetch/',
 ];
-let proxyIndex = 0;
+let proxyIdx = 0;
 
-async function fetchWithProxy(url) {
-  const errors = [];
+async function fetchProxy(url) {
   for (let i = 0; i < PROXIES.length; i++) {
     try {
-      const proxy = PROXIES[(proxyIndex + i) % PROXIES.length];
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 8000);
-      const res = await fetch(proxy + encodeURIComponent(url), { signal: controller.signal });
-      clearTimeout(timer);
-      if (res.ok) { proxyIndex = (proxyIndex + i) % PROXIES.length; return res; }
-      errors.push('HTTP ' + res.status);
-    } catch(e) { errors.push(e.message); }
+      const p = PROXIES[(proxyIdx + i) % PROXIES.length];
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 9000);
+      const res = await fetch(p + encodeURIComponent(url), { signal: ctrl.signal });
+      clearTimeout(t);
+      if (res.ok) { proxyIdx = (proxyIdx + i) % PROXIES.length; return res; }
+    } catch(e) {}
   }
-  throw new Error('接続失敗: ' + errors.join(' / '));
+  throw new Error('Connection failed. Please retry.');
 }
 
-// ══════════════════════════════
-// TRANSLATE (MyMemory)
-// ══════════════════════════════
 const MYMEMORY = 'https://api.mymemory.translated.net/get';
 const tCache = {};
-
-async function translate(text, from='ja', to='en') {
+async function translate(text, from='en', to='ja') {
   const key = `${from}|${to}|${text}`;
   if (tCache[key]) return tCache[key];
   if (text.length > 480) {
     const parts = splitText(text, 480);
-    const results = await Promise.all(parts.map(p => translate(p, from, to)));
-    return tCache[key] = results.join(' ');
+    const res = await Promise.all(parts.map(p => translate(p, from, to)));
+    return tCache[key] = res.join(' ');
   }
   try {
     const r = await fetch(`${MYMEMORY}?q=${encodeURIComponent(text)}&langpair=${from}|${to}`);
@@ -332,51 +271,28 @@ async function translate(text, from='ja', to='en') {
     return tCache[key] = d?.responseData?.translatedText || text;
   } catch { return tCache[key] = text; }
 }
-
 function splitText(text, max) {
   const chunks = []; let s = 0;
   while (s < text.length) {
     let e = Math.min(s + max, text.length);
-    if (e < text.length) {
-      const b = Math.max(text.lastIndexOf('。', e), text.lastIndexOf(' ', e));
-      if (b > s) e = b + 1;
-    }
+    if (e < text.length) { const b = text.lastIndexOf(' ', e); if (b > s) e = b + 1; }
     chunks.push(text.slice(s, e)); s = e;
   }
   return chunks;
 }
 
-// ══════════════════════════════
-// STATE
-// ══════════════════════════════
-let currentSrc = 'yahoo';
-let currentCat = 0;
-let articles = [];
+let currentSrc = 'sora', currentCat = 0, articles = [];
 const wordCache = {};
 
-// ══════════════════════════════
-// INIT
-// ══════════════════════════════
-window.onload = () => {
-  buildCatTabs('yahoo');
-  loadRSS();
-};
+window.onload = () => { buildCatTabs('sora'); loadFeed(); };
 
-// ══════════════════════════════
-// SOURCE SWITCH
-// ══════════════════════════════
 function switchSource(src) {
   if (currentSrc === src) return;
-  currentSrc = src;
-  currentCat = 0;
+  currentSrc = src; currentCat = 0;
   document.querySelectorAll('.src-btn').forEach(b => b.classList.toggle('active', b.dataset.src === src));
-  buildCatTabs(src);
-  loadRSS();
+  buildCatTabs(src); loadFeed();
 }
 
-// ══════════════════════════════
-// CAT TABS
-// ══════════════════════════════
 function buildCatTabs(src) {
   const bar = document.getElementById('catTabs');
   bar.innerHTML = '';
@@ -386,67 +302,51 @@ function buildCatTabs(src) {
     btn.textContent = cat.label;
     btn.onclick = () => {
       document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentCat = i;
-      loadRSS();
+      btn.classList.add('active'); currentCat = i; loadFeed();
     };
     bar.appendChild(btn);
   });
 }
 
-// ══════════════════════════════
-// RSS LOAD
-// ══════════════════════════════
-async function loadRSS() {
+async function loadFeed() {
   const list = document.getElementById('newsList');
-  list.innerHTML = '<div class="loading"><div class="spinner"></div>読み込み中...</div>';
+  list.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
   articles = [];
   const cat = SOURCES[currentSrc].categories[currentCat];
   try {
-    if (false) {
-      // (unused)
-    } else {
-      // RSS形式
-      const res = await fetchWithProxy(cat.rss);
-      const text = await res.text();
-      const xml = new DOMParser().parseFromString(text, 'text/xml');
-      const items = xml.querySelectorAll('item');
-      if (items.length === 0) throw new Error('記事が0件でした');
-      const raw = Array.from(items).slice(0, 30).map(item => {
-        const description = (item.querySelector('description')?.textContent || '')
-          .replace(/<!\[CDATA\[|\]\]>/g,'').replace(/<[^>]+>/g,'').trim();
-        return {
-          titleJp: item.querySelector('title')?.textContent?.replace(/<!\[CDATA\[|\]\]>/g,'').trim() || '',
-          link: item.querySelector('link')?.textContent?.trim() || '',
-          pubDate: item.querySelector('pubDate')?.textContent || '',
-          description,
-        };
-      });
-      list.innerHTML = '<div class="loading"><div class="spinner"></div>タイトルを英訳中...</div>';
-      articles = await Promise.all(raw.map(async (a, i) => ({
-        ...a, titleEn: await translate(a.titleJp), index: i
-      })));
-      renderList();
-    }
+    const res = await fetchProxy(cat.rss);
+    const text = await res.text();
+    const xml = new DOMParser().parseFromString(text, 'text/xml');
+    const items = xml.querySelectorAll('item');
+    if (items.length === 0) throw new Error('No articles found');
+
+    articles = Array.from(items).slice(0, 30).map((item, i) => {
+      const title = item.querySelector('title')?.textContent?.replace(/<![CDATA[|]]>/g,'').trim() || '';
+      const link = item.querySelector('link')?.textContent?.trim() || '';
+      const pubDate = item.querySelector('pubDate')?.textContent || '';
+      const desc = (item.querySelector('description')?.textContent || '')
+        .replace(/<![CDATA[|]]>/g,'').replace(/<[^>]+>/g,'').trim();
+      return { title, link, pubDate, desc, index: i };
+    });
+
+    renderList();
   } catch(e) {
-    list.innerHTML = `<div class="notice"><strong>⚠️ 読み込み失敗</strong><br>${e.message}<br>
-      <button class="retry-btn" onclick="loadRSS()">🔄 再試行</button></div>`;
+    list.innerHTML = `<div class="notice"><strong>⚠️ Failed to load</strong><br>${e.message}<br>
+      <button class="retry-btn" onclick="loadFeed()">🔄 Retry</button></div>`;
   }
 }
-
 
 function renderList() {
   const list = document.getElementById('newsList');
   list.innerHTML = '';
   articles.forEach((a, i) => {
-    const date = a.pubDate ? new Date(a.pubDate).toLocaleDateString('ja-JP',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+    const date = a.pubDate ? new Date(a.pubDate).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
     const card = document.createElement('div');
     card.className = 'news-card';
     card.innerHTML = `
       <div class="news-num">${String(i+1).padStart(2,'0')}</div>
       <div class="news-content">
-        <div class="news-title-jp">${esc(a.titleJp)}</div>
-        <div class="news-title-en ${a.translating ? 'translating' : ''}" data-idx="${i}">${esc(a.titleEn)}</div>
+        <div class="news-title">${esc(a.title)}</div>
         <div class="news-meta">📅 ${date}</div>
       </div>
       <div class="news-arrow">›</div>`;
@@ -455,92 +355,72 @@ function renderList() {
   });
 }
 
-// ══════════════════════════════
-// ARTICLE
-// ══════════════════════════════
 async function openArticle(idx) {
   const a = articles[idx];
   document.getElementById('listView').style.display = 'none';
   document.getElementById('articleView').style.display = 'block';
   document.getElementById('backBtn').style.display = 'block';
   document.getElementById('jpToggle').checked = false;
-  document.getElementById('artTitleEn').textContent = a.titleEn;
-  document.getElementById('artTitleJp').textContent = a.titleJp;
-  document.getElementById('artDate').textContent = a.pubDate ? new Date(a.pubDate).toLocaleString('ja-JP') : '';
+  document.getElementById('artTitle').textContent = a.title;
+  document.getElementById('artDate').textContent = a.pubDate ? new Date(a.pubDate).toLocaleString('en-US') : '';
   const src = SOURCES[currentSrc];
-  document.getElementById('artSource').innerHTML = `<span class="art-source-dot" style="background:${src.color}"></span>${src.name}`;
-  document.getElementById('articleBody').innerHTML = '<div class="loading"><div class="spinner"></div>翻訳中...</div>';
+  document.getElementById('artDot').style.background = src.color;
+  document.getElementById('artSrc').textContent = src.name;
+  document.getElementById('articleBody').innerHTML = '<div class="loading"><div class="spinner"></div>Loading article...</div>';
   window.scrollTo(0,0);
 
   try {
     let paras = [];
-    const NOISE = /続きを読む|全文を読む|広告|Cookie|Copyright|All Rights|プライバシー|利用規約|無断転載|関連記事/i;
+    const NOISE = /^(Share|Tweet|Facebook|Twitter|Instagram|Subscribe|Newsletter|Copyright|All rights|Tags:|Filed under|Related|Read more|Advertisement|Click here)/i;
 
-    // 本文フェッチ（corsproxy.ioはcharsetを保持するので文字化けしにくい）
+    // フェッチして本文取得（英語サイトなので文字化けなし）
     try {
-      const res = await fetchWithProxy(a.link);
-      const buf = await res.arrayBuffer();
-      const uint8 = new Uint8Array(buf);
-      // まずUTF-8でデコードしてcharsetを確認
-      let html = new TextDecoder('utf-8').decode(uint8);
-      if (html.includes('charset=shift_jis') || html.includes('charset=Shift_JIS')
-          || html.includes('charset=sjis')) {
-        html = new TextDecoder('shift-jis').decode(uint8);
-      } else if (html.includes('charset=euc-jp') || html.includes('charset=EUC-JP')) {
-        html = new TextDecoder('euc-jp').decode(uint8);
-      }
+      const res = await fetchProxy(a.link);
+      const html = await res.text();
       const doc = new DOMParser().parseFromString(html, 'text/html');
       const selectors = [
-        '.article-body-inner p', '.articleBody p', '#articleBody p',
-        '.article_body p', '[class*="article-body"] p',
-        'article p', '.entry-content p', '.post-content p',
-        '.body p', '#main p', 'main p',
+        '.entry-content p', '.post-content p', '.article-content p',
+        '.story-body p', '.article-body p', '.content p',
+        'article p', 'main p',
       ];
       for (const sel of selectors) {
         const els = doc.querySelectorAll(sel);
         const texts = Array.from(els)
           .map(el => el.textContent.trim())
-          .filter(t => t.length > 15 && !t.match(NOISE) && /[ぁ-んァ-ン一-龥]/.test(t));
-        if (texts.length >= 2) { paras = texts.slice(0, 25); break; }
+          .filter(t => t.length > 30 && !t.match(NOISE));
+        if (texts.length >= 2) { paras = texts.slice(0, 20); break; }
       }
-    } catch(e) { /* フォールバック */ }
+    } catch(e) {}
 
-    // 本文が取れなかった場合はRSS descriptionを使う
-    if (paras.length < 2 && a.description && a.description.length > 10) {
-      const split = a.description
-        .split(/(?<=。)\s*|(?<=！)\s*|(?<=？)\s*|\n+/)
-        .map(s => s.trim())
-        .filter(s => s.length > 8 && /[ぁ-んァ-ン一-龥]/.test(s));
-      paras = split.length > 0 ? split : [a.description];
-    }
+    // フォールバック: RSSのdescription
+    if (paras.length < 2 && a.desc) paras = [a.desc];
+    if (paras.length === 0) throw new Error('Could not load article content');
 
-    if (paras.length === 0 && a.titleJp) paras = [a.titleJp];
-    if (paras.length === 0) throw new Error('記事本文が取得できませんでした');
-
-    showStatus(`翻訳中 0/${paras.length}`);
+    showStatus(`Translating 0/${paras.length}`);
     const translated = [];
     for (let i = 0; i < paras.length; i++) {
-      translated.push({ jp: paras[i], en: await translate(paras[i]) });
-      showStatus(`翻訳中 ${i+1}/${paras.length}`);
+      const jp = await translate(paras[i]);
+      translated.push({ en: paras[i], jp });
+      showStatus(`Translating ${i+1}/${paras.length}`);
     }
     hideStatus();
     renderArticle(translated);
   } catch(e) {
     hideStatus();
     document.getElementById('articleBody').innerHTML =
-      `<div class="notice"><strong>⚠️ 取得失敗</strong><br>${e.message}</div>`;
+      `<div class="notice"><strong>⚠️ Failed</strong><br>${e.message}</div>`;
   }
 }
 
 function renderArticle(paras) {
   const body = document.getElementById('articleBody');
   body.innerHTML = '';
-  paras.forEach((p) => {
+  paras.forEach(p => {
     const block = document.createElement('div');
     block.className = 'para-block';
     const enDiv = document.createElement('div');
     enDiv.className = 'en-para';
-    enDiv.innerHTML = clickableWords(p.en);
+    enDiv.innerHTML = clickable(p.en);
     const jpDiv = document.createElement('div');
     jpDiv.className = 'jp-para';
     jpDiv.textContent = p.jp;
@@ -550,78 +430,56 @@ function renderArticle(paras) {
   body.addEventListener('click', onWordClick);
 }
 
-function clickableWords(text) {
-  return text.replace(/([a-zA-Z']+)/g, m => {
-    if (m.replace(/'/g,'').length < 2) return m;
+function clickable(text) {
+  return text.replace(/([a-zA-Z''-]+)/g, m => {
+    if (m.replace(/[^a-zA-Z]/g,'').length < 2) return m;
     return `<span class="word" data-w="${escA(m)}">${esc(m)}</span>`;
   });
 }
 
-// ══════════════════════════════
-// WORD TOOLTIP
-// ══════════════════════════════
 const tooltip = document.getElementById('tooltip');
-const ttWord = document.getElementById('tt-word');
-const ttJp = document.getElementById('tt-jp');
-
 async function onWordClick(e) {
   const span = e.target.closest('.word');
   if (!span) { tooltip.style.display='none'; return; }
   const word = span.dataset.w;
-  ttWord.textContent = word;
-  ttJp.textContent = '…';
+  document.getElementById('tt-word').textContent = word;
+  document.getElementById('tt-jp').textContent = '…';
   span.classList.add('looked-up');
-  posTooltip(e);
-  tooltip.style.display = 'block';
-
+  posTooltip(e); tooltip.style.display='block';
   const key = word.toLowerCase();
-  if (wordCache[key]) { ttJp.textContent = wordCache[key]; return; }
+  if (wordCache[key]) { document.getElementById('tt-jp').textContent = wordCache[key]; return; }
   try {
-    wordCache[key] = await translate(word, 'en', 'ja');
-    ttJp.textContent = wordCache[key];
-  } catch { ttJp.textContent = '取得失敗'; }
+    wordCache[key] = await translate(word);
+    document.getElementById('tt-jp').textContent = wordCache[key];
+  } catch { document.getElementById('tt-jp').textContent = 'N/A'; }
 }
-
 function posTooltip(e) {
-  const x = e.clientX, y = e.clientY, w = 200, h = 65;
-  let left = x + 12, top = y - h - 12;
-  if (left + w > window.innerWidth - 8) left = x - w - 12;
-  if (top < 8) top = y + 20;
-  tooltip.style.left = left+'px'; tooltip.style.top = top+'px';
+  const x=e.clientX,y=e.clientY,w=200,h=65;
+  let left=x+12,top=y-h-12;
+  if(left+w>window.innerWidth-8)left=x-w-12;
+  if(top<8)top=y+20;
+  tooltip.style.left=left+'px';tooltip.style.top=top+'px';
 }
+document.addEventListener('click',e=>{if(!e.target.closest('.word'))tooltip.style.display='none';});
 
-document.addEventListener('click', e => { if (!e.target.closest('.word')) tooltip.style.display='none'; });
-
-// ══════════════════════════════
-// JP TOGGLE
-// ══════════════════════════════
 function toggleJpAll() {
   const show = document.getElementById('jpToggle').checked;
-  document.querySelectorAll('.jp-para').forEach(el => el.classList.toggle('visible', show));
+  document.querySelectorAll('.jp-para').forEach(el=>el.classList.toggle('visible',show));
 }
 
-// ══════════════════════════════
-// BACK
-// ══════════════════════════════
 function showList() {
-  document.getElementById('articleView').style.display = 'none';
-  document.getElementById('listView').style.display = 'block';
-  document.getElementById('backBtn').style.display = 'none';
-  tooltip.style.display = 'none';
+  document.getElementById('articleView').style.display='none';
+  document.getElementById('listView').style.display='block';
+  document.getElementById('backBtn').style.display='none';
+  tooltip.style.display='none';
 }
 
-// ══════════════════════════════
-// STATUS
-// ══════════════════════════════
 const statusBar = document.getElementById('statusBar');
-function showStatus(msg) { statusBar.textContent = msg; statusBar.style.display = 'block'; }
-function hideStatus() { statusBar.style.display = 'none'; }
+function showStatus(msg){statusBar.textContent=msg;statusBar.style.display='block';}
+function hideStatus(){statusBar.style.display='none';}
 
-// ══════════════════════════════
-// UTILS
-// ══════════════════════════════
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function escA(s) { return String(s).replace(/"/g,'&quot;'); }
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escA(s){return String(s).replace(/"/g,'&quot;');}
 </script>
 </body>
 </html>
