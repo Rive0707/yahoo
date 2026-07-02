@@ -469,27 +469,50 @@ async function openArticle(idx) {
   document.getElementById('artDate').textContent = a.pubDate ? new Date(a.pubDate).toLocaleString('ja-JP') : '';
   const src = SOURCES[currentSrc];
   document.getElementById('artSource').innerHTML = `<span class="art-source-dot" style="background:${src.color}"></span>${src.name}`;
-  document.getElementById('articleBody').innerHTML = '<div class="loading"><div class="spinner"></div>翻訳中...</div>';
+  document.getElementById('articleBody').innerHTML = '<div class="loading"><div class="spinner"></div>記事取得中...</div>';
   window.scrollTo(0,0);
 
   try {
-    // RSSのdescriptionのみ使用（本文フェッチは文字化けするため廃止）
     let paras = [];
+    const NOISE = /続きを読む|全文を読む|広告|Cookie|Copyright|All Rights|プライバシー|利用規約|無断転載|関連記事|おすすめ|ランキング/i;
 
-    if (a.description && a.description.length > 20) {
+    // livedoorの記事URLなら全文フェッチを試みる
+    if (a.link.includes('livedoor')) {
+      try {
+        const res = await fetchWithProxy(a.link);
+        const buf = await res.arrayBuffer();
+        // UTF-8でデコード
+        const html = new TextDecoder('utf-8').decode(buf);
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const selectors = [
+          '.article-body-inner p',
+          '.articleBody p',
+          '#articleBody p',
+          '.news-article p',
+          '.article p',
+          'article p',
+        ];
+        for (const sel of selectors) {
+          const els = doc.querySelectorAll(sel);
+          const texts = Array.from(els)
+            .map(el => el.textContent.trim())
+            .filter(t => t.length > 15 && !t.match(NOISE) && /[ぁ-んァ-ン一-龥]/.test(t));
+          if (texts.length >= 2) { paras = texts.slice(0, 25); break; }
+        }
+      } catch(e) { /* フォールバック */ }
+    }
+
+    // 全文取れなかった場合はRSSのdescriptionを使う
+    if (paras.length < 2 && a.description && a.description.length > 20) {
       paras = a.description
         .split(/(?<=。)\s*|(?<=…)\s*|\n+/)
         .map(s => s.trim())
         .filter(s => s.length > 10 && /[ぁ-んァ-ン一-龥]/.test(s))
         .map(s => s.endsWith('。') || s.endsWith('…') ? s : s + '。');
+      if (paras.length === 0) paras = [a.description];
     }
 
-    // 分割できなかった場合はそのまま1段落
-    if (paras.length === 0 && a.description) {
-      paras = [a.description];
-    }
-
-    if (paras.length === 0) throw new Error('概要文が取得できませんでした');
+    if (paras.length === 0) throw new Error('記事本文が取得できませんでした');
 
     showStatus(`翻訳中 0/${paras.length}`);
     const translated = [];
