@@ -414,18 +414,13 @@ async function loadRSS() {
       const items = xml.querySelectorAll('item');
       if (items.length === 0) throw new Error('記事が0件でした');
       const raw = Array.from(items).slice(0, 30).map(item => {
-        // content:encodedがあればそちらを優先（本文が長い）
-        const contentEncoded = item.getElementsByTagNameNS('*', 'encoded')[0]?.textContent || '';
         const description = (item.querySelector('description')?.textContent || '')
           .replace(/<!\[CDATA\[|\]\]>/g,'').replace(/<[^>]+>/g,'').trim();
-        const fullText = contentEncoded
-          ? contentEncoded.replace(/<!\[CDATA\[|\]\]>/g,'').replace(/<[^>]+>/g,'').trim()
-          : description;
         return {
           titleJp: item.querySelector('title')?.textContent?.replace(/<!\[CDATA\[|\]\]>/g,'').trim() || '',
           link: item.querySelector('link')?.textContent?.trim() || '',
           pubDate: item.querySelector('pubDate')?.textContent || '',
-          description: fullText || description,
+          description,
         };
       });
       list.innerHTML = '<div class="loading"><div class="spinner"></div>タイトルを英訳中...</div>';
