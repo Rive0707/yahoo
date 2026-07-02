@@ -261,14 +261,13 @@ const SOURCES = {
     name: 'Yahoo! ニュース',
     color: '#ff0033',
     categories: [
-      { label: 'トップ',       rss: 'https://news.livedoor.com/topics/rss/top.xml' },
-      { label: '国内',         rss: 'https://news.livedoor.com/topics/rss/dom.xml' },
-      { label: '国際',         rss: 'https://news.livedoor.com/topics/rss/int.xml' },
-      { label: 'エンタメ',     rss: 'https://news.livedoor.com/topics/rss/ent.xml' },
-      { label: 'スポーツ',     rss: 'https://news.livedoor.com/topics/rss/spo.xml' },
-      { label: 'IT',           rss: 'https://news.livedoor.com/topics/rss/it.xml' },
-      { label: '経済',         rss: 'https://news.livedoor.com/topics/rss/eco.xml' },
-      { label: '社会',         rss: 'https://news.livedoor.com/topics/rss/soc.xml' },
+      { label: 'トップ',       rss: 'https://news.yahoo.co.jp/rss/topics/top-picks.xml' },
+      { label: '国内',         rss: 'https://news.yahoo.co.jp/rss/topics/domestic.xml' },
+      { label: '国際',         rss: 'https://news.yahoo.co.jp/rss/topics/world.xml' },
+      { label: 'ビジネス',     rss: 'https://news.yahoo.co.jp/rss/topics/business.xml' },
+      { label: 'テクノロジー', rss: 'https://news.yahoo.co.jp/rss/topics/it.xml' },
+      { label: 'スポーツ',     rss: 'https://news.yahoo.co.jp/rss/topics/sports.xml' },
+      { label: 'エンタメ',     rss: 'https://news.yahoo.co.jp/rss/topics/entertainment.xml' },
     ]
   },
   nhk: {
@@ -291,8 +290,8 @@ const SOURCES = {
 // PROXY
 // ══════════════════════════════
 const PROXIES = [
-  'https://api.allorigins.win/raw?url=',
   'https://corsproxy.io/?',
+  'https://api.allorigins.win/raw?url=',
   'https://thingproxy.freeboard.io/fetch/',
 ];
 let proxyIndex = 0;
@@ -475,9 +474,39 @@ async function openArticle(idx) {
 
   try {
     let paras = [];
+    const NOISE = /続きを読む|全文を読む|広告|Cookie|Copyright|All Rights|プライバシー|利用規約|無断転載|関連記事/i;
 
-    if (a.description && a.description.length > 10) {
-      // 句点で段落分割、日本語テキストのみ
+    // 本文フェッチ（corsproxy.ioはcharsetを保持するので文字化けしにくい）
+    try {
+      const res = await fetchWithProxy(a.link);
+      const buf = await res.arrayBuffer();
+      const uint8 = new Uint8Array(buf);
+      // まずUTF-8でデコードしてcharsetを確認
+      let html = new TextDecoder('utf-8').decode(uint8);
+      if (html.includes('charset=shift_jis') || html.includes('charset=Shift_JIS')
+          || html.includes('charset=sjis')) {
+        html = new TextDecoder('shift-jis').decode(uint8);
+      } else if (html.includes('charset=euc-jp') || html.includes('charset=EUC-JP')) {
+        html = new TextDecoder('euc-jp').decode(uint8);
+      }
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const selectors = [
+        '.article-body-inner p', '.articleBody p', '#articleBody p',
+        '.article_body p', '[class*="article-body"] p',
+        'article p', '.entry-content p', '.post-content p',
+        '.body p', '#main p', 'main p',
+      ];
+      for (const sel of selectors) {
+        const els = doc.querySelectorAll(sel);
+        const texts = Array.from(els)
+          .map(el => el.textContent.trim())
+          .filter(t => t.length > 15 && !t.match(NOISE) && /[ぁ-んァ-ン一-龥]/.test(t));
+        if (texts.length >= 2) { paras = texts.slice(0, 25); break; }
+      }
+    } catch(e) { /* フォールバック */ }
+
+    // 本文が取れなかった場合はRSS descriptionを使う
+    if (paras.length < 2 && a.description && a.description.length > 10) {
       const split = a.description
         .split(/(?<=。)\s*|(?<=！)\s*|(?<=？)\s*|\n+/)
         .map(s => s.trim())
@@ -485,7 +514,8 @@ async function openArticle(idx) {
       paras = split.length > 0 ? split : [a.description];
     }
 
-    if (paras.length === 0) throw new Error('概要文が取得できませんでした');
+    if (paras.length === 0 && a.titleJp) paras = [a.titleJp];
+    if (paras.length === 0) throw new Error('記事本文が取得できませんでした');
 
     showStatus(`翻訳中 0/${paras.length}`);
     const translated = [];
