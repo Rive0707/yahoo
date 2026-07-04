@@ -19,6 +19,7 @@
   --warn: #fbbf24;
   --sora: #ff6b35;
   --jt: #2196f3;
+  --nhk: #00a8cc;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -51,6 +52,7 @@ header {
 .src-dot { width: 7px; height: 7px; border-radius: 50%; }
 .src-btn[data-src="sora"] .src-dot { background: var(--sora); }
 .src-btn[data-src="jt"] .src-dot { background: var(--jt); }
+.src-btn[data-src="nhk"] .src-dot { background: var(--nhk); }
 .src-btn.active { color: var(--text); border-bottom-color: var(--accent); }
 
 .cat-scroll {
@@ -176,6 +178,9 @@ header {
   <button class="src-btn" data-src="jt" onclick="switchSource('jt')">
     <span class="src-dot"></span> Japan Today
   </button>
+  <button class="src-btn" data-src="nhk" onclick="switchSource('nhk')">
+    <span class="src-dot"></span> NHK World
+  </button>
 </div>
 
 <div class="cat-scroll" id="catTabs"></div>
@@ -224,12 +229,23 @@ const SOURCES = {
   jt: {
     name: 'Japan Today', color: '#2196f3',
     categories: [
-      { label: 'All',      rss: 'https://japantoday.com/feed' },
-      { label: 'News',     rss: 'https://japantoday.com/category/national/feed' },
-      { label: 'Sports',   rss: 'https://japantoday.com/category/sports/feed' },
-      { label: 'Tech',     rss: 'https://japantoday.com/category/tech/feed' },
-      { label: 'Entertainment', rss: 'https://japantoday.com/category/entertainment/feed' },
-      { label: 'World',    rss: 'https://japantoday.com/category/world/feed' },
+      { label: 'All',          rss: 'https://japantoday.com/feed' },
+      { label: 'News',         rss: 'https://japantoday.com/category/national/feed' },
+      { label: 'Sports',       rss: 'https://japantoday.com/category/sports/feed' },
+      { label: 'Tech',         rss: 'https://japantoday.com/category/tech/feed' },
+      { label: 'Entertainment',rss: 'https://japantoday.com/category/entertainment/feed' },
+      { label: 'World',        rss: 'https://japantoday.com/category/world/feed' },
+    ]
+  },
+  nhk: {
+    name: 'NHK World', color: '#00a8cc',
+    categories: [
+      { label: 'All',     rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/all/' },
+      { label: 'Business',rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/business/' },
+      { label: 'Politics',rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/politics/' },
+      { label: 'Science', rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/science/' },
+      { label: 'Sports',  rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/sports/' },
+      { label: 'Culture', rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/culture/' },
     ]
   }
 };
