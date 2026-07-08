@@ -240,12 +240,12 @@ const SOURCES = {
   nhk: {
     name: 'NHK World', color: '#00a8cc',
     categories: [
-      { label: 'All',     rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/all/' },
-      { label: 'Business',rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/business/' },
-      { label: 'Politics',rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/politics/' },
-      { label: 'Science', rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/science/' },
-      { label: 'Sports',  rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/sports/' },
-      { label: 'Culture', rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/culture/' },
+      { label: 'All',      rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/' },
+      { label: 'Business', rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/business/' },
+      { label: 'Politics', rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/politics/' },
+      { label: 'Science',  rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/science/' },
+      { label: 'Sports',   rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/sports/' },
+      { label: 'Culture',  rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/lifestyle/' },
     ]
   }
 };
@@ -271,7 +271,7 @@ async function fetchProxy(url) {
   throw new Error('Connection failed. Please retry.');
 }
 
-const GROQ_KEY = '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';
+const GROQ_KEY = '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';
 const tCache = {};
 
 async function translate(text, from='en', to='ja') {
