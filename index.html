@@ -179,7 +179,7 @@ header {
     <span class="src-dot"></span> Japan Today
   </button>
   <button class="src-btn" data-src="nhk" onclick="switchSource('nhk')">
-    <span class="src-dot"></span> NHK World
+    <span class="src-dot"></span> News on Japan
   </button>
 </div>
 
@@ -238,14 +238,14 @@ const SOURCES = {
     ]
   },
   nhk: {
-    name: 'NHK World', color: '#00a8cc',
+    name: 'News on Japan', color: '#00a8cc',
     categories: [
-      { label: 'All',      rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/' },
-      { label: 'Business', rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/business/' },
-      { label: 'Politics', rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/politics/' },
-      { label: 'Science',  rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/science/' },
-      { label: 'Sports',   rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/sports/' },
-      { label: 'Culture',  rss: 'https://www3.nhk.or.jp/nhkworld/en/news/feeds/lifestyle/' },
+      { label: 'All',       rss: 'https://newsonjapan.com/rss/top.xml' },
+      { label: 'Politics',  rss: 'https://newsonjapan.com/rss/politics.xml' },
+      { label: 'Business',  rss: 'https://newsonjapan.com/rss/business.xml' },
+      { label: 'Sports',    rss: 'https://newsonjapan.com/rss/sports.xml' },
+      { label: 'Tech',      rss: 'https://newsonjapan.com/rss/tech.xml' },
+      { label: 'Culture',   rss: 'https://newsonjapan.com/rss/entertainment.xml' },
     ]
   }
 };
